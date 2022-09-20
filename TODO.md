@@ -1,0 +1,6 @@
+- TODO tree members
+- game end
+- add docstings
+- game server
+- tests
+- README.md
