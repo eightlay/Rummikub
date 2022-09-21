@@ -396,7 +396,49 @@ func (g *Game) addCombinationHandle(ar *ActionRequest) ([]byte, error) {
 }
 
 func (g *Game) splitCombination(ar *ActionRequest) ([]byte, error) {
-	// TODO
+	player_ := player(ar.Player)
+
+	if g.stages[player_] == initialMeldStage {
+		return actionError(fmt.Errorf("wrong stage action for player: %v", player_))
+	}
+
+	if len(ar.UsedCombinations) != 1 {
+		return actionError(
+			fmt.Errorf("exactly one combination can be splitted per action"),
+		)
+	}
+
+	stepNumber := ar.UsedCombinations[0]
+
+	combination := g.combinationByStepNumber(stepNumber)
+	if combination == nil {
+		return actionError(fmt.Errorf("there is no combination with index %v", stepNumber))
+	}
+
+	if ar.SplitAfterIndex >= len(combination.Pieces) {
+		return actionError(fmt.Errorf(
+			"index %v out of range in combination %v",
+			ar.SplitAfterIndex, stepNumber,
+		))
+	}
+
+	pieces1 := combination.Pieces[:ar.SplitAfterIndex]
+	pieces2 := combination.Pieces[ar.SplitAfterIndex:]
+
+	newCombination1 := validCombination(pieces1)
+	newCombination2 := validCombination(pieces2)
+
+	if newCombination1 == nil || newCombination2 == nil {
+		return actionError(fmt.Errorf(
+			"can't create two valid combinations from splitting combination %v on index %v",
+			stepNumber, ar.SplitAfterIndex,
+		))
+	}
+
+	g.deleteCombinationByStepNumber(stepNumber)
+	g.placeCombination(player_, newCombination1)
+	g.placeCombination(player_, newCombination2)
+
 	return actionSuccess()
 }
 
