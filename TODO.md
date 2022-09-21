@@ -1,5 +1,5 @@
-- game end
 - add docstings
+- game logic
 - game server
 - split tests
 - refactor tests
