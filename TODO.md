@@ -1,6 +1,6 @@
 - game end
 - add docstings
 - game server
-- tests
 - split tests
-- README.md
+- refactor tests
+- finish readme usage section
