@@ -176,15 +176,9 @@ func (g *Game) initialMeldHandle(ar *ActionRequest) ([]byte, error) {
 		return actionError(fmt.Errorf("wrong game stage for player: %v", player_))
 	}
 
-	pieces := []*Piece{}
-
-	for _, pieceIndex := range ar.AddedPieces {
-		p := g.pieceByIndex(player_, pieceIndex)
-		if p != nil {
-			pieces = append(pieces, g.pieceByIndex(player_, pieceIndex))
-		} else {
-			return actionError(fmt.Errorf("there is no piece with index %v", pieceIndex))
-		}
+	pieces, notFoundIndex := g.gatherPieces(player_, ar.AddedPieces)
+	if pieces == nil {
+		return actionError(fmt.Errorf("there is no piece with index %v", notFoundIndex))
 	}
 
 	combination := validInitialMeld(pieces)
@@ -253,17 +247,12 @@ func (g *Game) addRemovePieceHandle(ar *ActionRequest, addFlag bool) ([]byte, er
 		)
 	}
 
-	newCombinationType := validCombination(pieces)
-	if newCombinationType == notCombination {
+	newCombination := validCombination(pieces)
+	if newCombination == nil {
 		return actionError(fmt.Errorf(
 			"can't add the piece %v to the combination %v",
 			pieceIndex, stepNumber,
 		))
-	}
-
-	newCombination := &Combination{
-		Pieces: sortPieces(pieces),
-		Type:   newCombinationType,
 	}
 
 	g.placeCombination(player_, newCombination)
@@ -300,6 +289,21 @@ func (g *Game) pieceByIndex(player_ player, pieceIndex int) *Piece {
 		return nil
 	}
 	return g.hands[player_][pieceIndex]
+}
+
+func (g *Game) gatherPieces(player_ player, pieceIndeces []int) ([]*Piece, int) {
+	pieces := []*Piece{}
+
+	for _, pieceIndex := range pieceIndeces {
+		p := g.pieceByIndex(player_, pieceIndex)
+		if p != nil {
+			pieces = append(pieces, g.pieceByIndex(player_, pieceIndex))
+		} else {
+			return nil, pieceIndex
+		}
+	}
+
+	return pieces, -1
 }
 
 func (g *Game) addPieceToHand(player_ player, piece *Piece) {
@@ -351,17 +355,12 @@ func (g *Game) replacePieceHandle(ar *ActionRequest) ([]byte, error) {
 	pieces := combination.Pieces[:]
 	pieces[toRemovePieceIndex] = toAddPiece
 
-	newCombinationType := validCombination(pieces)
-	if newCombinationType == notCombination {
+	newCombination := validCombination(pieces)
+	if newCombination == nil {
 		return actionError(fmt.Errorf(
 			"piece %v from hand can't replace piece %v from combination %v",
 			toAddPieceIndex, toRemovePieceIndex, stepNumber,
 		))
-	}
-
-	newCombination := &Combination{
-		Pieces: sortPieces(pieces),
-		Type:   newCombinationType,
 	}
 
 	g.placeCombination(player_, newCombination)
@@ -374,8 +373,26 @@ func (g *Game) replacePieceHandle(ar *ActionRequest) ([]byte, error) {
 }
 
 func (g *Game) addCombinationHandle(ar *ActionRequest) ([]byte, error) {
+	player_ := player(ar.Player)
 
-	return actionSuccess()
+	if g.stages[player_] == initialMeldStage {
+		return actionError(fmt.Errorf("wrong game stage for player: %v", player_))
+	}
+
+	pieces, notFoundIndex := g.gatherPieces(player_, ar.AddedPieces)
+	if pieces == nil {
+		return actionError(fmt.Errorf("there is no piece with index %v", notFoundIndex))
+	}
+
+	newCombination := validCombination(pieces)
+
+	if newCombination != nil {
+		g.placeCombination(player_, newCombination)
+		g.removePiecesFromHand(player_, ar.AddedPieces)
+		return actionSuccess()
+	}
+
+	return actionError(fmt.Errorf("invalid combination"))
 }
 
 func (g *Game) splitCombination(ar *ActionRequest) ([]byte, error) {
@@ -411,8 +428,8 @@ func (g *Game) concatCombinations(ar *ActionRequest) ([]byte, error) {
 		}
 	}
 
-	newCombinationType := validCombination(pieces)
-	if newCombinationType == notCombination {
+	newCombination := validCombination(pieces)
+	if newCombination == nil {
 		stepStrings := []string{}
 		for _, stepNumber := range ar.UsedCombinations {
 			stepStrings = append(stepStrings, strconv.Itoa(stepNumber))
@@ -424,12 +441,7 @@ func (g *Game) concatCombinations(ar *ActionRequest) ([]byte, error) {
 		))
 	}
 
-	combination := &Combination{
-		Pieces: sortPieces(pieces),
-		Type:   newCombinationType,
-	}
-
-	g.placeCombination(player_, combination)
+	g.placeCombination(player_, newCombination)
 
 	for _, stepNumber := range ar.UsedCombinations {
 		g.deleteCombinationByStepNumber(stepNumber)

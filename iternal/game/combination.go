@@ -29,26 +29,26 @@ func (c *Combination) toJSON() ([]byte, error) {
 }
 
 func validInitialMeld(pieces []*Piece) *Combination {
-	ct := validCombination(pieces)
+	newCombination := validCombination(pieces)
 
-	if ct != notCombination {
+	if newCombination != nil {
 		s := 0
 
-		for _, p := range pieces {
+		for _, p := range newCombination.Pieces {
 			s += p.Number
 		}
 
 		correct := s >= initialMeldSum
 
 		if correct {
-			return &Combination{sortPieces(pieces), ct}
+			return newCombination
 		}
 	}
 
-	return nil
+	return newCombination
 }
 
-func validCombination(pieces []*Piece) combinationType {
+func validCombination(pieces []*Piece) *Combination {
 	validGroup := validGroup(pieces)
 
 	if !validGroup {
@@ -57,19 +57,22 @@ func validCombination(pieces []*Piece) combinationType {
 		if !validRun {
 
 			for _, p := range pieces {
-				if p.Joker {
-					p.Number = jokerNumber
-					p.Color = jokerColor
-				}
+				p.clearIfJoker()
 			}
 
-			return notCombination
+			return nil
 		} else {
-			return run
+			return &Combination{
+				Pieces: sortPieces(pieces),
+				Type:   run,
+			}
 		}
 	}
 
-	return group
+	return &Combination{
+		Pieces: sortPieces(pieces),
+		Type:   group,
+	}
 }
 
 func validGroup(pieces []*Piece) bool {
