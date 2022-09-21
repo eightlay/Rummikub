@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"strconv"
+	"strings"
 )
 
 type Game struct {
@@ -168,8 +170,13 @@ func (g *Game) applyPenalty(ar *ActionRequest) {
 }
 
 func (g *Game) initialMeldHandle(ar *ActionRequest) ([]byte, error) {
-	pieces := []*Piece{}
 	player_ := player(ar.Player)
+
+	if g.stages[player_] != initialMeldStage {
+		return actionError(fmt.Errorf("wrong game stage for player: %v", player_))
+	}
+
+	pieces := []*Piece{}
 
 	for _, pieceIndex := range ar.AddedPieces {
 		p := g.pieceByIndex(player_, pieceIndex)
@@ -180,17 +187,15 @@ func (g *Game) initialMeldHandle(ar *ActionRequest) ([]byte, error) {
 		}
 	}
 
-	if g.stages[player_] == initialMeldStage {
-		combination := validInitialMeld(pieces)
+	combination := validInitialMeld(pieces)
 
-		if combination != nil {
-			g.placeCombination(player_, combination)
-			g.removePiecesFromHand(player_, ar.AddedPieces)
-			return actionSuccess()
-		}
+	if combination != nil {
+		g.placeCombination(player_, combination)
+		g.removePiecesFromHand(player_, ar.AddedPieces)
+		return actionSuccess()
 	}
 
-	return actionError(fmt.Errorf("wrong game stage for player: %v", player_))
+	return actionError(fmt.Errorf("invalid combination"))
 }
 
 func (g *Game) placeCombination(player_ player, comb *Combination) {
@@ -379,6 +384,56 @@ func (g *Game) splitCombination(ar *ActionRequest) ([]byte, error) {
 }
 
 func (g *Game) concatCombinations(ar *ActionRequest) ([]byte, error) {
-	// TODO
+	player_ := player(ar.Player)
+
+	if g.stages[player_] == initialMeldStage {
+		return actionError(fmt.Errorf("wrong stage action for player: %v", player_))
+	}
+
+	if len(ar.UsedCombinations) < 2 {
+		return actionError(
+			fmt.Errorf("at leat 2 combination can be concatenated"),
+		)
+	}
+
+	pieces := []*Piece{}
+
+	for _, stepNumber := range ar.UsedCombinations {
+		combination := g.combinationByStepNumber(stepNumber)
+		if combination == nil {
+			return actionError(fmt.Errorf(
+				"there is no combination with index %v", stepNumber,
+			))
+		}
+
+		for _, p := range combination.Pieces {
+			pieces = append(pieces, p)
+		}
+	}
+
+	newCombinationType := validCombination(pieces)
+	if newCombinationType == notCombination {
+		stepStrings := []string{}
+		for _, stepNumber := range ar.UsedCombinations {
+			stepStrings = append(stepStrings, strconv.Itoa(stepNumber))
+		}
+
+		return actionError(fmt.Errorf(
+			"combinations [%v] can't be concatenated to the valid one",
+			strings.Join(stepStrings, ", "),
+		))
+	}
+
+	combination := &Combination{
+		Pieces: sortPieces(pieces),
+		Type:   newCombinationType,
+	}
+
+	g.placeCombination(player_, combination)
+
+	for _, stepNumber := range ar.UsedCombinations {
+		g.deleteCombinationByStepNumber(stepNumber)
+	}
+
 	return actionSuccess()
 }
