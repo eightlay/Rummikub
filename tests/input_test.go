@@ -301,7 +301,7 @@ func TestRemovePieceAction(t *testing.T) {
 	action := game.ActionRequest{
 		Player:        "p1",
 		Action:        game.InitialMeld,
-		AddedPieces:   []int{8, 9, 10, 11, 12},
+		AddedPieces:   []int{9, 10, 11, 12},
 		TimerExceeded: false,
 	}
 
@@ -337,7 +337,7 @@ func TestRemovePieceAction(t *testing.T) {
 		t.Fatal("removing piece changed field size")
 	}
 
-	if g.HandSize("p1") != game.HandSize-4 {
+	if g.HandSize("p1") != game.HandSize-3 {
 		t.Fatal("wrong hand size after removing piece")
 	}
 
@@ -391,11 +391,11 @@ func TestRemovePieceAction(t *testing.T) {
 		t.Fatal("invalid action 2 changed field size")
 	}
 
-	if g.HandSize("p1") != game.HandSize-4 {
+	if g.HandSize("p1") != game.HandSize-3 {
 		t.Fatal("invalid action 2 changed hand size")
 	}
 
-	// Invalid action 3: trying to add piece before initial meld made
+	// Invalid action 3: wrong resulting combination
 	action = game.ActionRequest{
 		Player:           "p1",
 		Action:           game.RemovePiece,
@@ -418,7 +418,7 @@ func TestRemovePieceAction(t *testing.T) {
 		t.Fatal("invalid action 3 changed field size")
 	}
 
-	if g.HandSize("p2") != game.HandSize {
+	if g.HandSize("p1") != game.HandSize-3 {
 		t.Fatal("invalid action 3 changed hand size")
 	}
 }
