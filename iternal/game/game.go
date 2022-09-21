@@ -136,6 +136,16 @@ func (g *Game) HandleAction(request []byte) ([]byte, error) {
 	switch ar.Action {
 	case initialMeld:
 		return g.initialMeldHandle(&ar)
+	case addPiece:
+		return g.addPieceHandle(&ar)
+	case removePiece:
+		return g.removePiece(&ar)
+	case replacePiece:
+		return g.replacePieceHandle(&ar)
+	case addCombination:
+		return g.addCombinationHandle(&ar)
+	case splitCombination:
+		return g.splitCombination(&ar)
 	}
 
 	return actionError(fmt.Errorf("unknown action"))
@@ -347,4 +357,24 @@ func (g *Game) placeCombination(player_ player, comb *Combination) {
 
 	g.field[s] = comb
 	g.history.combinations[s] = comb
+}
+
+func (g *Game) addPieceHandle(ar *ActionRequest) ([]byte, error) {
+	return actionSuccess()
+}
+
+func (g *Game) removePiece(ar *ActionRequest) ([]byte, error) {
+	return actionSuccess()
+}
+
+func (g *Game) replacePieceHandle(ar *ActionRequest) ([]byte, error) {
+	return actionSuccess()
+}
+
+func (g *Game) addCombinationHandle(ar *ActionRequest) ([]byte, error) {
+	return actionSuccess()
+}
+
+func (g *Game) splitCombination(ar *ActionRequest) ([]byte, error) {
+	return actionSuccess()
 }
