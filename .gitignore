@@ -1,5 +1,8 @@
 test/
 
+# Log data
+*.log
+
 # Experimental functions
 exp
 

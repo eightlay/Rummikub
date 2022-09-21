@@ -1,6 +1,6 @@
-- TODO tree members
 - game end
 - add docstings
 - game server
-- tests
-- README.md
+- split tests
+- refactor tests
+- finish readme usage section
