@@ -466,15 +466,15 @@ func (g *Game) splitCombination(ar *ActionRequest) ([]byte, error) {
 		return actionError(fmt.Errorf("there is no combination with index %v", stepNumber))
 	}
 
-	if ar.SplitAfterIndex >= len(combination.Pieces) {
+	if ar.SplitBeforeIndex >= len(combination.Pieces) {
 		return actionError(fmt.Errorf(
 			"index %v out of range in combination %v",
-			ar.SplitAfterIndex, stepNumber,
+			ar.SplitBeforeIndex, stepNumber,
 		))
 	}
 
-	pieces1 := combination.Pieces[:ar.SplitAfterIndex]
-	pieces2 := combination.Pieces[ar.SplitAfterIndex:]
+	pieces1 := combination.Pieces[:ar.SplitBeforeIndex]
+	pieces2 := combination.Pieces[ar.SplitBeforeIndex:]
 
 	newCombination1 := validCombination(pieces1)
 	newCombination2 := validCombination(pieces2)
@@ -482,7 +482,7 @@ func (g *Game) splitCombination(ar *ActionRequest) ([]byte, error) {
 	if newCombination1 == nil || newCombination2 == nil {
 		return actionError(fmt.Errorf(
 			"can't create two valid combinations from splitting combination %v on index %v",
-			stepNumber, ar.SplitAfterIndex,
+			stepNumber, ar.SplitBeforeIndex,
 		))
 	}
 
