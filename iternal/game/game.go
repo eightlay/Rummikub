@@ -313,7 +313,56 @@ func (g *Game) removePieceFromHand(player_ player, pieceIndex int) {
 }
 
 func (g *Game) replacePieceHandle(ar *ActionRequest) ([]byte, error) {
-	// TODO
+	player_ := player(ar.Player)
+
+	if g.stages[player_] == initialMeldStage {
+		return actionError(fmt.Errorf("wrong stage action for player: %v", player_))
+	}
+
+	if len(ar.AddedPieces) > 1 || len(ar.AddedPieces) == 0 {
+		return actionError(fmt.Errorf("exactly one piece per action can be replaced"))
+	}
+
+	if len(ar.UsedCombinations) > 1 || len(ar.UsedCombinations) == 0 {
+		return actionError(
+			fmt.Errorf("excatly one combination per action can be used for adding/removing"),
+		)
+	}
+
+	stepNumber := ar.UsedCombinations[0]
+	combination := g.combinationByStepNumber(stepNumber)
+	if combination == nil {
+		return actionError(fmt.Errorf("there is no combination with index %v", stepNumber))
+	}
+
+	toAddPieceIndex := ar.AddedPieces[0]
+	toRemovePieceIndex := ar.RemovedPiece
+
+	toAddPiece := g.pieceByIndex(player_, toAddPieceIndex)
+	toRemovePiece := combination.Pieces[toRemovePieceIndex]
+
+	pieces := combination.Pieces[:]
+	pieces[toRemovePieceIndex] = toAddPiece
+
+	newCombinationType := validCombination(pieces)
+	if newCombinationType == notCombination {
+		return actionError(fmt.Errorf(
+			"piece %v from hand can't replace piece %v from combination %v",
+			toAddPieceIndex, toRemovePieceIndex, stepNumber,
+		))
+	}
+
+	newCombination := &Combination{
+		Pieces: sortPieces(pieces),
+		Type:   newCombinationType,
+	}
+
+	g.placeCombination(player_, newCombination)
+	g.deleteCombinationByStepNumber(stepNumber)
+	g.removePieceFromHand(player_, toAddPieceIndex)
+	g.addPieceToHand(player_, toRemovePiece)
+	toRemovePiece.clearIfJoker()
+
 	return actionSuccess()
 }
 
