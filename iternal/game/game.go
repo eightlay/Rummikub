@@ -141,6 +141,8 @@ func (g *Game) HandleAction(request []byte) ([]byte, error) {
 		return g.replacePieceHandle(&ar)
 	case addCombination:
 		return g.addCombinationHandle(&ar)
+	case concatCombinations:
+		return g.concatCombinations(&ar)
 	case splitCombination:
 		return g.splitCombination(&ar)
 	}
@@ -367,11 +369,16 @@ func (g *Game) replacePieceHandle(ar *ActionRequest) ([]byte, error) {
 }
 
 func (g *Game) addCombinationHandle(ar *ActionRequest) ([]byte, error) {
-	// TODO
+
 	return actionSuccess()
 }
 
 func (g *Game) splitCombination(ar *ActionRequest) ([]byte, error) {
+	// TODO
+	return actionSuccess()
+}
+
+func (g *Game) concatCombinations(ar *ActionRequest) ([]byte, error) {
 	// TODO
 	return actionSuccess()
 }
