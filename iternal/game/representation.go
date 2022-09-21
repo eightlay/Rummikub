@@ -41,5 +41,5 @@ func actionError(err error) ([]byte, error) {
 	if e != nil {
 		return nil, e
 	}
-	return j, nil
+	return j, err
 }
