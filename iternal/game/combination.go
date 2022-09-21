@@ -168,7 +168,7 @@ func validRun(pieces_ []*Piece) bool {
 		lastNumber = pieces[i].Number
 	}
 
-	for i := 0; i <= jokerCount; i++ {
+	for i := 0; i < jokerCount; i++ {
 		lastNumber += 1
 		jokerValues = append(jokerValues, lastNumber)
 	}
