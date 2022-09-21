@@ -4,14 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-
-	mapset "github.com/deckarep/golang-set/v2"
 )
 
 type Game struct {
 	field      field
 	history    *history
-	bank       bag
+	bank       pack
 	hands      map[player]hand
 	stages     map[player]stage
 	stepNumber int
@@ -28,7 +26,7 @@ func NewGame(players []string) (*Game, error) {
 	return &Game{
 		field:      field{},
 		history:    createHistory(),
-		bank:       createInitialBag(),
+		bank:       createInitialPack(),
 		hands:      hands,
 		stages:     stages,
 		stepNumber: 1,
@@ -132,14 +130,13 @@ func (g *Game) HandleAction(request []byte) ([]byte, error) {
 		return actionSuccess()
 	}
 
-	// TODO: implement all actions
 	switch ar.Action {
 	case initialMeld:
 		return g.initialMeldHandle(&ar)
 	case addPiece:
-		return g.addPieceHandle(&ar)
+		return g.addRemovePieceHandle(&ar, true)
 	case removePiece:
-		return g.removePiece(&ar)
+		return g.addRemovePieceHandle(&ar, false)
 	case replacePiece:
 		return g.replacePieceHandle(&ar)
 	case addCombination:
@@ -171,19 +168,18 @@ func (g *Game) applyPenalty(ar *ActionRequest) {
 func (g *Game) initialMeldHandle(ar *ActionRequest) ([]byte, error) {
 	pieces := []*Piece{}
 	player_ := player(ar.Player)
-	handLen := len(g.hands[player_])
 
 	for _, pieceIndex := range ar.UsedPieces {
-		if pieceIndex >= handLen {
-			return actionError(
-				fmt.Errorf("player doesn't have piece with key %v", pieceIndex),
-			)
+		p := g.pieceByIndex(player_, pieceIndex)
+		if p != nil {
+			pieces = append(pieces, g.pieceByIndex(player_, pieceIndex))
+		} else {
+			return actionError(fmt.Errorf("there is no piece with index %v", pieceIndex))
 		}
-		pieces = append(pieces, g.hands[player_][pieceIndex])
 	}
 
 	if g.stages[player_] == initialMeldStage {
-		combination := g.isValidInitialMeld(pieces)
+		combination := validInitialMeld(pieces)
 
 		if combination != nil {
 			g.placeCombination(player_, combination)
@@ -192,156 +188,6 @@ func (g *Game) initialMeldHandle(ar *ActionRequest) ([]byte, error) {
 	}
 
 	return actionError(fmt.Errorf("wrong game stage for player: %v", player_))
-}
-
-func (g *Game) isValidInitialMeld(pieces []*Piece) *Combination {
-	ct := g.isValidCombination(pieces)
-
-	if ct != notCombination {
-		s := 0
-
-		for _, p := range pieces {
-			s += p.Number
-		}
-
-		correct := s >= initialMeldSum
-
-		if correct {
-			return &Combination{sortPieces(pieces), ct}
-		}
-	}
-
-	return nil
-}
-
-func (g *Game) isValidCombination(pieces []*Piece) combinationType {
-	validGroup := g.isValidGroup(pieces)
-
-	if !validGroup {
-		validRun := g.isValidRun(pieces)
-
-		if !validRun {
-
-			for _, p := range pieces {
-				if p.Joker {
-					p.Number = jokerNumber
-					p.Color = jokerColor
-				}
-			}
-
-			return notCombination
-		} else {
-			return run
-		}
-	}
-
-	return group
-}
-
-func (g *Game) isValidGroup(pieces []*Piece) bool {
-	if len(pieces) < minGroupSize || len(pieces) > maxGroupSize {
-		return false
-	}
-
-	usedColors := mapset.NewSet[color]()
-	var number int = jokerNumber
-
-	for _, p := range pieces {
-		if p.Joker {
-			continue
-		}
-
-		if number == 0 {
-			number = p.Number
-		} else if number != p.Number {
-			return false
-		} else if usedColors.Contains(p.Color) {
-			return false
-		}
-
-		usedColors.Add(p.Color)
-	}
-
-	for _, p := range pieces {
-		if p.Joker {
-			c, _ := colorsSet.Difference(usedColors).Pop()
-			p.Number = number
-			p.Color = c
-		}
-	}
-
-	return true
-}
-
-func (g *Game) isValidRun(pieces_ []*Piece) bool {
-	if len(pieces_) < minRunSize {
-		return false
-	}
-
-	pieces := sortPieces(pieces_)
-
-	runColor := pieces[len(pieces)-1].Color
-
-	jokerCount := 0
-	jokerValues := []int{}
-	startIndex := 1
-
-	if pieces[0].Joker {
-		startIndex += 1
-		jokerCount += 1
-	}
-
-	if pieces[1].Joker {
-		startIndex += 1
-		jokerCount += 1
-	}
-
-	var lastNumber = pieces[startIndex-1].Number
-
-	for i := startIndex; i < len(pieces); i++ {
-		if pieces[i].Color != runColor {
-			return false
-		}
-
-		diff := pieces[i].Number - lastNumber
-
-		if diff <= 0 {
-			return false
-		}
-
-		if diff != 1 {
-			if jokerCount == 0 {
-				return false
-			}
-
-			jokersNeeded := diff - 1
-
-			if jokersNeeded > jokerCount {
-				return false
-			}
-
-			jokerCount -= jokersNeeded
-
-			for j := 1; j <= jokersNeeded; j++ {
-				lastNumber += 1
-				jokerValues = append(jokerValues, lastNumber)
-			}
-		}
-
-		lastNumber = pieces[i].Number
-	}
-
-	for i := 0; i <= jokerCount; i++ {
-		lastNumber += 1
-		jokerValues = append(jokerValues, lastNumber)
-	}
-
-	for i, v := range jokerValues {
-		pieces[i].Number = v
-		pieces[i].Color = runColor
-	}
-
-	return true
 }
 
 func (g *Game) placeCombination(player_ player, comb *Combination) {
@@ -359,22 +205,123 @@ func (g *Game) placeCombination(player_ player, comb *Combination) {
 	g.history.combinations[s] = comb
 }
 
-func (g *Game) addPieceHandle(ar *ActionRequest) ([]byte, error) {
+func (g *Game) addRemovePieceHandle(ar *ActionRequest, addFlag bool) ([]byte, error) {
+	player_ := player(ar.Player)
+
+	if g.stages[player_] == initialMeldStage {
+		return actionError(fmt.Errorf("wrong stage action for player: %v", player_))
+	}
+
+	if len(ar.UsedPieces) > 1 || len(ar.UsedPieces) == 0 {
+		return actionError(fmt.Errorf("exactly one piece per action can be added\removed"))
+	}
+
+	if len(ar.UsedCombinations) > 1 || len(ar.UsedCombinations) == 0 {
+		return actionError(
+			fmt.Errorf("excatly one combination per action can be used for adding/removing"),
+		)
+	}
+
+	pieceIndex := ar.UsedPieces[0]
+	piece := g.pieceByIndex(player_, pieceIndex)
+	if piece == nil {
+		return actionError(fmt.Errorf("there is no piece with index %v", pieceIndex))
+	}
+
+	stepNumber := ar.UsedCombinations[0]
+	combination := g.combinationByStepNumber(stepNumber)
+	if combination == nil {
+		return actionError(fmt.Errorf("there is no combination with index %v", stepNumber))
+	}
+
+	var pieces pack
+
+	if addFlag {
+		pieces = append(combination.Pieces, piece)
+	} else {
+		pieces = append(
+			combination.Pieces[:pieceIndex],
+			combination.Pieces[pieceIndex+1:]...,
+		)
+	}
+
+	newCombinationType := validCombination(pieces)
+	if newCombinationType == notCombination {
+		return actionError(fmt.Errorf(
+			"can't add the piece %v to the combination %v",
+			pieceIndex, stepNumber,
+		))
+	}
+
+	newCombination := &Combination{
+		Pieces: sortPieces(pieces),
+		Type:   newCombinationType,
+	}
+
+	g.placeCombination(player_, newCombination)
+	g.deleteCombinationByStepNumber(stepNumber)
+
+	if addFlag {
+		g.removePieceFromHand(player_, pieceIndex)
+	} else {
+		g.addPieceToHand(player_, piece)
+	}
+
 	return actionSuccess()
 }
 
-func (g *Game) removePiece(ar *ActionRequest) ([]byte, error) {
-	return actionSuccess()
+func (g *Game) combinationByStepNumber(stepNumber int) *Combination {
+	for s, c := range g.field {
+		if s.number == stepNumber {
+			return c
+		}
+	}
+	return nil
+}
+
+func (g *Game) deleteCombinationByStepNumber(stepNumber int) {
+	for s := range g.field {
+		if s.number == stepNumber {
+			delete(g.field, s)
+		}
+	}
+}
+
+func (g *Game) pieceByIndex(player_ player, pieceIndex int) *Piece {
+	if pieceIndex >= len(g.hands[player_]) {
+		return nil
+	}
+	return g.hands[player_][pieceIndex]
+}
+
+func (g *Game) addPieceToHand(player_ player, piece *Piece) {
+	g.hands[player_] = append(g.hands[player_], piece)
+}
+
+func (g *Game) removePiecesFromHand(player_ player, pieceIndeces []int) {
+	for _, ind := range pieceIndeces {
+		g.removePieceFromHand(player_, ind)
+	}
+}
+
+func (g *Game) removePieceFromHand(player_ player, pieceIndex int) {
+	g.hands[player_] = append(
+		g.hands[player_][:pieceIndex],
+		g.hands[player_][pieceIndex+1:]...,
+	)
 }
 
 func (g *Game) replacePieceHandle(ar *ActionRequest) ([]byte, error) {
+	// TODO
 	return actionSuccess()
 }
 
 func (g *Game) addCombinationHandle(ar *ActionRequest) ([]byte, error) {
+	// TODO
 	return actionSuccess()
 }
 
 func (g *Game) splitCombination(ar *ActionRequest) ([]byte, error) {
+	// TODO
 	return actionSuccess()
 }
