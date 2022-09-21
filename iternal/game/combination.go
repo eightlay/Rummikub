@@ -45,7 +45,7 @@ func validInitialMeld(pieces []*Piece) *Combination {
 		}
 	}
 
-	return newCombination
+	return nil
 }
 
 func validCombination(pieces []*Piece) *Combination {
