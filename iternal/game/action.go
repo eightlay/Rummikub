@@ -1,21 +1,35 @@
 package game
 
-type action string
+type action int
+
+/*
+	Actions
+
+	initialMeld        = "Начальная ставка"
+	addPiece           = "Выложить фишку"
+	removePiece        = "Убрать фишку"
+	replacePiece       = "Заменить фишку"
+	addCombination     = "Выложить комбинацию"
+	concatCombinations = "Соединить комбинации"
+	splitCombination   = "Разделить комбинацию"
+	pass               = "Пропустить ход"
+
+*/
 
 const (
-	initialMeld        action = "Начальная ставка"
-	addPiece           action = "Выложить фишку"
-	removePiece        action = "Убрать фишку"
-	replacePiece       action = "Заменить фишку"
-	addCombination     action = "Выложить комбинацию"
-	concatCombinations action = "Соединить комбинации"
-	splitCombination   action = "Разделить комбинацию"
-	pass               action = "Пропустить ход"
+	InitialMeld action = iota
+	AddPiece
+	RemovePiece
+	ReplacePiece
+	AddCombination
+	ConcatCombinations
+	SplitCombination
+	Pass
 )
 
-var initialActions [2]action = [2]action{initialMeld, pass}
+var initialActions [2]action = [2]action{InitialMeld, Pass}
 
 var mainActions [7]action = [7]action{
-	addPiece, removePiece, replacePiece,
-	addCombination, concatCombinations, splitCombination, pass,
+	AddPiece, RemovePiece, ReplacePiece,
+	AddCombination, ConcatCombinations, SplitCombination, Pass,
 }

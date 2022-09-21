@@ -160,29 +160,29 @@ func (g *Game) HandleAction(request []byte) ([]byte, error) {
 	}
 
 	// Handle action
-	if ar.TimerExceeded || ar.Action == pass {
+	if ar.TimerExceeded || ar.Action == Pass {
 		g.applyPenalty(&ar)
 		return actionSuccess()
 	}
 
 	switch ar.Action {
-	case initialMeld:
+	case InitialMeld:
 		response, err := g.initialMeldHandle(&ar)
 		if err == nil {
 			g.stages[player(ar.Player)] = mainGameStage
 		}
 		return response, err
-	case addPiece:
+	case AddPiece:
 		return g.addRemovePieceHandle(&ar, true)
-	case removePiece:
+	case RemovePiece:
 		return g.addRemovePieceHandle(&ar, false)
-	case replacePiece:
+	case ReplacePiece:
 		return g.replacePieceHandle(&ar)
-	case addCombination:
+	case AddCombination:
 		return g.addCombinationHandle(&ar)
-	case concatCombinations:
+	case ConcatCombinations:
 		return g.concatCombinations(&ar)
-	case splitCombination:
+	case SplitCombination:
 		return g.splitCombination(&ar)
 	}
 
