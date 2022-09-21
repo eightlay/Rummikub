@@ -18,7 +18,7 @@ type ActionRequest struct {
 	Action           action `json:"action"`
 	AddedPieces      []int  `json:"addedPieces"`
 	RemovedPiece     int    `json:"removedPiece"`
-	SplitIndex       int    `json:"splitIndex"`
+	SplitAfterIndex  int    `json:"splitAfterIndex"`
 	UsedCombinations []int  `json:"usedCombinations"`
 	TimerExceeded    bool   `json:"timerExceeded"`
 }
