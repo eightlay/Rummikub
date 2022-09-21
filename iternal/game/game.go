@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -229,6 +230,8 @@ func (g *Game) initialMeldHandle(ar *ActionRequest) ([]byte, error) {
 }
 
 func (g *Game) placeCombination(player_ player, comb *Combination) {
+	g.stepNumber += 1
+
 	s := &step{
 		number:   g.stepNumber,
 		player:   player_,
@@ -347,7 +350,10 @@ func (g *Game) addPieceToHand(player_ player, piece *Piece) {
 }
 
 func (g *Game) removePiecesFromHand(player_ player, pieceIndeces []int) {
-	for _, ind := range pieceIndeces {
+	indeces := pieceIndeces[:]
+	sort.Sort(sort.Reverse(sort.IntSlice(indeces)))
+
+	for _, ind := range indeces {
 		g.removePieceFromHand(player_, ind)
 	}
 }
