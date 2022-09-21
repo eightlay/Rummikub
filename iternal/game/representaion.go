@@ -22,10 +22,11 @@ type ActionRequest struct {
 }
 
 type ActionResponse struct {
-	Error error `json:"error"`
+	Success bool  `json:"success"`
+	Error   error `json:"error"`
 }
 
-var _actionSuccess ActionResponse = ActionResponse{nil}
+var _actionSuccess ActionResponse = ActionResponse{true, nil}
 
 func actionSuccess() ([]byte, error) {
 	j, _ := json.Marshal(_actionSuccess)
@@ -33,7 +34,8 @@ func actionSuccess() ([]byte, error) {
 }
 
 func actionError(err error) ([]byte, error) {
-	j, e := json.Marshal(_actionSuccess)
+	response := ActionResponse{false, err}
+	j, e := json.Marshal(&response)
 	if e != nil {
 		return nil, e
 	}
