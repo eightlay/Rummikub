@@ -253,20 +253,16 @@ func (g *Game) addRemovePieceHandle(ar *ActionRequest, addFlag bool) ([]byte, er
 		return actionError(fmt.Errorf("wrong stage action for player: %v", player_))
 	}
 
-	if len(ar.AddedPieces) > 1 || len(ar.AddedPieces) == 0 {
-		return actionError(fmt.Errorf("exactly one piece per action can be added\removed"))
-	}
-
-	if len(ar.UsedCombinations) > 1 || len(ar.UsedCombinations) == 0 {
+	if (len(ar.AddedPieces) > 1 || len(ar.AddedPieces) == 0) && addFlag {
 		return actionError(
-			fmt.Errorf("excatly one combination per action can be used for adding/removing"),
+			fmt.Errorf("exactly one piece per action can be added/removed"),
 		)
 	}
 
-	pieceIndex := ar.AddedPieces[0]
-	piece := g.pieceByIndex(player_, pieceIndex)
-	if piece == nil {
-		return actionError(fmt.Errorf("there is no piece with index %v", pieceIndex))
+	if len(ar.UsedCombinations) > 1 || len(ar.UsedCombinations) == 0 {
+		return actionError(fmt.Errorf(
+			"excatly one combination per action can be used for adding/removed",
+		))
 	}
 
 	stepNumber := ar.UsedCombinations[0]
@@ -276,10 +272,23 @@ func (g *Game) addRemovePieceHandle(ar *ActionRequest, addFlag bool) ([]byte, er
 	}
 
 	var pieces pack
+	var pieceIndex int
+	var piece *Piece
 
 	if addFlag {
+		pieceIndex = ar.AddedPieces[0]
+		piece = g.pieceByIndex(player_, pieceIndex)
+		if piece == nil {
+			return actionError(fmt.Errorf(
+				"there is no piece with index %v", pieceIndex,
+			))
+		}
+
 		pieces = append(combination.Pieces, piece)
 	} else {
+		pieceIndex = ar.RemovedPiece
+		piece = combination.Pieces[pieceIndex]
+
 		pieces = append(
 			combination.Pieces[:pieceIndex],
 			combination.Pieces[pieceIndex+1:]...,
@@ -289,7 +298,7 @@ func (g *Game) addRemovePieceHandle(ar *ActionRequest, addFlag bool) ([]byte, er
 	newCombination := validCombination(pieces)
 	if newCombination == nil {
 		return actionError(fmt.Errorf(
-			"can't add the piece %v to the combination %v",
+			"can't add/remove the piece %v to the combination %v",
 			pieceIndex, stepNumber,
 		))
 	}
@@ -377,9 +386,9 @@ func (g *Game) replacePieceHandle(ar *ActionRequest) ([]byte, error) {
 	}
 
 	if len(ar.UsedCombinations) > 1 || len(ar.UsedCombinations) == 0 {
-		return actionError(
-			fmt.Errorf("excatly one combination per action can be used for adding/removing"),
-		)
+		return actionError(fmt.Errorf(
+			"excatly one combination per action can be used for adding/removing",
+		))
 	}
 
 	stepNumber := ar.UsedCombinations[0]
