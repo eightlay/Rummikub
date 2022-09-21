@@ -183,6 +183,7 @@ func (g *Game) initialMeldHandle(ar *ActionRequest) ([]byte, error) {
 
 		if combination != nil {
 			g.placeCombination(player_, combination)
+			g.removePiecesFromHand(player_, ar.UsedPieces)
 			return actionSuccess()
 		}
 	}
