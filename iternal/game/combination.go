@@ -16,7 +16,7 @@ const (
 )
 
 type Combination struct {
-	Pieces []*Piece        `json:"pieces"`
+	Pieces pack            `json:"pieces"`
 	Type   combinationType `json:"type"`
 }
 

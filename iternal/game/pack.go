@@ -1,9 +1,9 @@
 package game
 
-type bag []*Piece
+type pack []*Piece
 
-func createInitialBag() bag {
-	b := bag{}
+func createInitialPack() pack {
+	b := pack{}
 
 	for d := 0; d < decksNumber; d++ {
 		for i := minNumber; i <= maxNumber; i++ {
