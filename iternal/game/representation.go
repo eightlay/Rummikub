@@ -16,7 +16,9 @@ type StateResponse struct {
 type ActionRequest struct {
 	Player           string `json:"player"`
 	Action           action `json:"action"`
-	UsedPieces       []int  `json:"usedPieces"`
+	AddedPieces      []int  `json:"addedPieces"`
+	RemovedPiece     int    `json:"removedPiece"`
+	SplitIndex       int    `json:"splitIndex"`
 	UsedCombinations []int  `json:"usedCombinations"`
 	TimerExceeded    bool   `json:"timerExceeded"`
 }

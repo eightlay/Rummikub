@@ -169,7 +169,7 @@ func (g *Game) initialMeldHandle(ar *ActionRequest) ([]byte, error) {
 	pieces := []*Piece{}
 	player_ := player(ar.Player)
 
-	for _, pieceIndex := range ar.UsedPieces {
+	for _, pieceIndex := range ar.AddedPieces {
 		p := g.pieceByIndex(player_, pieceIndex)
 		if p != nil {
 			pieces = append(pieces, g.pieceByIndex(player_, pieceIndex))
@@ -183,7 +183,7 @@ func (g *Game) initialMeldHandle(ar *ActionRequest) ([]byte, error) {
 
 		if combination != nil {
 			g.placeCombination(player_, combination)
-			g.removePiecesFromHand(player_, ar.UsedPieces)
+			g.removePiecesFromHand(player_, ar.AddedPieces)
 			return actionSuccess()
 		}
 	}
@@ -213,7 +213,7 @@ func (g *Game) addRemovePieceHandle(ar *ActionRequest, addFlag bool) ([]byte, er
 		return actionError(fmt.Errorf("wrong stage action for player: %v", player_))
 	}
 
-	if len(ar.UsedPieces) > 1 || len(ar.UsedPieces) == 0 {
+	if len(ar.AddedPieces) > 1 || len(ar.AddedPieces) == 0 {
 		return actionError(fmt.Errorf("exactly one piece per action can be added\removed"))
 	}
 
@@ -223,7 +223,7 @@ func (g *Game) addRemovePieceHandle(ar *ActionRequest, addFlag bool) ([]byte, er
 		)
 	}
 
-	pieceIndex := ar.UsedPieces[0]
+	pieceIndex := ar.AddedPieces[0]
 	piece := g.pieceByIndex(player_, pieceIndex)
 	if piece == nil {
 		return actionError(fmt.Errorf("there is no piece with index %v", pieceIndex))
