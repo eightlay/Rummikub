@@ -182,7 +182,7 @@ func TestAddPieceAction(t *testing.T) {
 		Player:           "p1",
 		Action:           game.AddPiece,
 		AddedPieces:      []int{8},
-		UsedCombinations: []int{2},
+		UsedCombinations: []int{1},
 		TimerExceeded:    false,
 	}
 
@@ -215,7 +215,7 @@ func TestAddPieceAction(t *testing.T) {
 		Player:           "p1",
 		Action:           game.AddPiece,
 		AddedPieces:      []int{0},
-		UsedCombinations: []int{3},
+		UsedCombinations: []int{2},
 		TimerExceeded:    false,
 	}
 
@@ -242,7 +242,7 @@ func TestAddPieceAction(t *testing.T) {
 		Player:           "p1",
 		Action:           game.AddPiece,
 		AddedPieces:      []int{7, 8},
-		UsedCombinations: []int{3},
+		UsedCombinations: []int{2},
 		TimerExceeded:    false,
 	}
 
@@ -269,7 +269,7 @@ func TestAddPieceAction(t *testing.T) {
 		Player:           "p2",
 		Action:           game.AddPiece,
 		AddedPieces:      []int{0},
-		UsedCombinations: []int{3},
+		UsedCombinations: []int{2},
 		TimerExceeded:    false,
 	}
 
@@ -312,8 +312,8 @@ func TestRemovePieceAction(t *testing.T) {
 	action = game.ActionRequest{
 		Player:           "p1",
 		Action:           game.RemovePiece,
-		AddedPieces:      []int{8},
-		UsedCombinations: []int{2},
+		RemovedPiece:     0,
+		UsedCombinations: []int{1},
 		TimerExceeded:    false,
 	}
 
@@ -334,11 +334,11 @@ func TestRemovePieceAction(t *testing.T) {
 	}
 
 	if g.FieldSize() != 1 {
-		t.Error("adding piece changed field size")
+		t.Error("removing piece changed field size")
 	}
 
-	if g.HandSize("p1") != game.HandSize-4 {
-		t.Error("wrong hand size after adding piece")
+	if g.HandSize("p1") != game.HandSize-3 {
+		t.Error("wrong hand size after removing piece")
 	}
 
 	// Invalid action 1: wrong run

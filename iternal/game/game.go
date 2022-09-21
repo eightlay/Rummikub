@@ -230,14 +230,14 @@ func (g *Game) initialMeldHandle(ar *ActionRequest) ([]byte, error) {
 }
 
 func (g *Game) placeCombination(player_ player, comb *Combination) {
-	g.stepNumber += 1
-
 	s := &step{
 		number:   g.stepNumber,
 		player:   player_,
 		prevStep: g.history.lastStep,
 		nextStep: nil,
 	}
+
+	g.stepNumber += 1
 
 	g.history.lastStep.nextStep = s
 	g.history.lastStep = s
