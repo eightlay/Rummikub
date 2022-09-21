@@ -36,7 +36,7 @@ func sortPieces(pieces_ []*Piece) []*Piece {
 
 func (p *Piece) clearIfJoker() {
 	if p.Joker {
-		p.Number = jokerNumber
-		p.Color = jokerColor
+		p.Number = JokerNumber
+		p.Color = JokerColor
 	}
 }

@@ -38,7 +38,7 @@ func validInitialMeld(pieces []*Piece) *Combination {
 			s += p.Number
 		}
 
-		correct := s >= initialMeldSum
+		correct := s >= InitialMeldSum
 
 		if correct {
 			return newCombination
@@ -76,12 +76,12 @@ func validCombination(pieces []*Piece) *Combination {
 }
 
 func validGroup(pieces []*Piece) bool {
-	if len(pieces) < minGroupSize || len(pieces) > maxGroupSize {
+	if len(pieces) < MinGroupSize || len(pieces) > MaxGroupSize {
 		return false
 	}
 
 	usedColors := mapset.NewSet[color]()
-	var number int = jokerNumber
+	var number int = JokerNumber
 
 	for _, p := range pieces {
 		if p.Joker {
@@ -111,7 +111,7 @@ func validGroup(pieces []*Piece) bool {
 }
 
 func validRun(pieces_ []*Piece) bool {
-	if len(pieces_) < minRunSize {
+	if len(pieces_) < MinRunSize {
 		return false
 	}
 

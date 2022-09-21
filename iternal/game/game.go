@@ -17,6 +17,14 @@ type Game struct {
 	stepNumber int
 }
 
+func (g *Game) FieldSize() int {
+	return len(g.field)
+}
+
+func (g *Game) HandSize(player_ string) int {
+	return len(g.hands[player(player_)])
+}
+
 func NewGame(players []string) (*Game, error) {
 	if len(players) > 4 || len(players) < 2 {
 		return nil, fmt.Errorf("must be from two to four players")
@@ -35,8 +43,32 @@ func NewGame(players []string) (*Game, error) {
 	}, nil
 }
 
+func NewTestGame() (*Game, error) {
+	players := []string{"p1", "p2"}
+
+	hands := createHands(players)
+	stages := createStages(players)
+
+	g := &Game{
+		field:      field{},
+		history:    createHistory(),
+		bank:       createInitialPack(),
+		hands:      hands,
+		stages:     stages,
+		stepNumber: 1,
+	}
+
+	g.testStart()
+
+	return g, nil
+}
+
 func (g *Game) Start() {
 	g.shuffleBank()
+	g.firstPick()
+}
+
+func (g *Game) testStart() {
 	g.firstPick()
 }
 
@@ -49,8 +81,8 @@ func (g *Game) shuffleBank() {
 
 func (g *Game) firstPick() {
 	for p := range g.hands {
-		g.hands[p] = hand(g.bank[:handSize])
-		g.bank = g.bank[handSize:]
+		g.hands[p] = hand(g.bank[:HandSize])
+		g.bank = g.bank[HandSize:]
 	}
 }
 
@@ -134,7 +166,11 @@ func (g *Game) HandleAction(request []byte) ([]byte, error) {
 
 	switch ar.Action {
 	case initialMeld:
-		return g.initialMeldHandle(&ar)
+		response, err := g.initialMeldHandle(&ar)
+		if err == nil {
+			g.stages[player(ar.Player)] = mainGameStage
+		}
+		return response, err
 	case addPiece:
 		return g.addRemovePieceHandle(&ar, true)
 	case removePiece:
@@ -159,8 +195,8 @@ func (g *Game) applyPenalty(ar *ActionRequest) {
 	var slicePos int
 	if bankLen == 0 {
 		return
-	} else if bankLen >= penaltySize {
-		slicePos = penaltySize
+	} else if bankLen >= PenaltySize {
+		slicePos = PenaltySize
 	} else {
 		slicePos = bankLen
 	}

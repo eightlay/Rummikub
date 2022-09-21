@@ -1,20 +1,22 @@
 package game
 
 const (
-	handSize int = 14
+	HandSize int = 14
 
-	minNumber   int = 1
-	maxNumber   int = 13
-	jokerNumber int = 0
+	MinNumber int = 1
+	MaxNumber int = 13
 
-	decksNumber int = 2
+	JokerNumber int   = 0
+	JokerColor  color = "jokerColor"
+
+	DecksNumber int = 2
 
 	TimeLimitSeconds int = 60
-	penaltySize      int = 3
+	PenaltySize      int = 3
 
-	initialMeldSum int = 30
+	InitialMeldSum int = 30
 
-	minGroupSize int = 3
-	maxGroupSize int = 4
-	minRunSize   int = 3
+	MinGroupSize int = 3
+	MaxGroupSize int = 4
+	MinRunSize   int = 3
 )
