@@ -33,3 +33,10 @@ func sortPieces(pieces_ []*Piece) []*Piece {
 
 	return pieces
 }
+
+func (p *Piece) clearIfJoker() {
+	if p.Joker {
+		p.Number = jokerNumber
+		p.Color = jokerColor
+	}
+}
