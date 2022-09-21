@@ -2,4 +2,5 @@
 - add docstings
 - game server
 - tests
+- split tests
 - README.md
