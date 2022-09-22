@@ -11,6 +11,8 @@ type StateResponse struct {
 	Field        map[int][]byte    `json:"field"`
 	BankSize     int               `json:"bankSize"`
 	Turn         player            `json:"turn"`
+	Finished     bool              `json:"finished"`
+	Winner       player            `json:"winner"`
 }
 
 // Parse StateResponse from JSON
