@@ -1,17 +1,13 @@
 package tests
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/eightlay/rummikube/iternal/game"
 )
 
 func TestInitialMeldAction(t *testing.T) {
-	g, err := game.NewTestGame()
-	if err != nil {
-		t.Fatalf("test game creation Fatal: %v", err)
-	}
+	g, _ := game.NewTestGame()
 
 	// Valid action
 	action := game.ActionRequest{
@@ -21,18 +17,17 @@ func TestInitialMeldAction(t *testing.T) {
 		TimerExceeded: false,
 	}
 
-	j, err := json.Marshal(&action)
+	j, err := action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	response, err := g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
 	}
 
-	var ar game.ActionResponse
-	err = json.Unmarshal(response, &ar)
+	_, err = game.ParseActionResponse(response)
 	if err != nil {
 		t.Fatalf("can't parse action response: %v", err)
 	}
@@ -53,12 +48,12 @@ func TestInitialMeldAction(t *testing.T) {
 		TimerExceeded: false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action was handled: %v", err)
 	}
@@ -79,12 +74,12 @@ func TestInitialMeldAction(t *testing.T) {
 		TimerExceeded: false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 2 was handled")
 	}
@@ -99,10 +94,7 @@ func TestInitialMeldAction(t *testing.T) {
 }
 
 func TestPassAction(t *testing.T) {
-	g, err := game.NewTestGame()
-	if err != nil {
-		t.Fatalf("test game creation Fatal: %v", err)
-	}
+	g, _ := game.NewTestGame()
 
 	action := game.ActionRequest{
 		Player:        "p1",
@@ -110,14 +102,19 @@ func TestPassAction(t *testing.T) {
 		TimerExceeded: false,
 	}
 
-	j, err := json.Marshal(&action)
+	j, err := action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
+	}
+
+	_, err = game.ParseActionResponse(response)
+	if err != nil {
+		t.Fatalf("can't parse action response: %v", err)
 	}
 
 	if g.FieldSize() != 0 {
@@ -130,10 +127,7 @@ func TestPassAction(t *testing.T) {
 }
 
 func TestTimeExceededAction(t *testing.T) {
-	g, err := game.NewTestGame()
-	if err != nil {
-		t.Fatalf("test game creation Fatal: %v", err)
-	}
+	g, _ := game.NewTestGame()
 
 	action := game.ActionRequest{
 		Player:        "p1",
@@ -142,14 +136,19 @@ func TestTimeExceededAction(t *testing.T) {
 		TimerExceeded: true,
 	}
 
-	j, err := json.Marshal(&action)
+	j, err := action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
+	}
+
+	_, err = game.ParseActionResponse(response)
+	if err != nil {
+		t.Fatalf("can't parse action response: %v", err)
 	}
 
 	if g.FieldSize() != 0 {
@@ -162,10 +161,7 @@ func TestTimeExceededAction(t *testing.T) {
 }
 
 func TestAddPieceAction(t *testing.T) {
-	g, err := game.NewTestGame()
-	if err != nil {
-		t.Fatalf("test game creation Fatal: %v", err)
-	}
+	g, _ := game.NewTestGame()
 
 	action := game.ActionRequest{
 		Player:        "p1",
@@ -174,8 +170,8 @@ func TestAddPieceAction(t *testing.T) {
 		TimerExceeded: false,
 	}
 
-	j, _ := json.Marshal(&action)
-	g.HandleAction(j)
+	j, _ := action.ToJSON()
+	g.ReceiveActionRequest(j)
 
 	// Valid action
 	action = game.ActionRequest{
@@ -186,18 +182,17 @@ func TestAddPieceAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err := action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	response, err := g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
 	}
 
-	var ar game.ActionResponse
-	err = json.Unmarshal(response, &ar)
+	_, err = game.ParseActionResponse(response)
 	if err != nil {
 		t.Fatalf("can't parse action response: %v", err)
 	}
@@ -219,12 +214,12 @@ func TestAddPieceAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action was handled: %v", err)
 	}
@@ -246,12 +241,12 @@ func TestAddPieceAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 2 was handled")
 	}
@@ -273,12 +268,12 @@ func TestAddPieceAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 3 was handled")
 	}
@@ -293,10 +288,7 @@ func TestAddPieceAction(t *testing.T) {
 }
 
 func TestRemovePieceAction(t *testing.T) {
-	g, err := game.NewTestGame()
-	if err != nil {
-		t.Fatalf("test game creation Fatal: %v", err)
-	}
+	g, _ := game.NewTestGame()
 
 	action := game.ActionRequest{
 		Player:        "p1",
@@ -305,8 +297,8 @@ func TestRemovePieceAction(t *testing.T) {
 		TimerExceeded: false,
 	}
 
-	j, _ := json.Marshal(&action)
-	g.HandleAction(j)
+	j, _ := action.ToJSON()
+	g.ReceiveActionRequest(j)
 
 	// Valid action
 	action = game.ActionRequest{
@@ -317,18 +309,17 @@ func TestRemovePieceAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err := action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	response, err := g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
 	}
 
-	var ar game.ActionResponse
-	err = json.Unmarshal(response, &ar)
+	_, err = game.ParseActionResponse(response)
 	if err != nil {
 		t.Fatalf("can't parse action response: %v", err)
 	}
@@ -350,12 +341,12 @@ func TestRemovePieceAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action was handled: %v", err)
 	}
@@ -377,12 +368,12 @@ func TestRemovePieceAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 2 was handled")
 	}
@@ -404,12 +395,12 @@ func TestRemovePieceAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 3 was handled")
 	}
@@ -424,10 +415,7 @@ func TestRemovePieceAction(t *testing.T) {
 }
 
 func TestReplacePieceAction(t *testing.T) {
-	g, err := game.NewTestGame()
-	if err != nil {
-		t.Fatalf("test game creation Fatal: %v", err)
-	}
+	g, _ := game.NewTestGame()
 
 	action := game.ActionRequest{
 		Player:        "p1",
@@ -436,8 +424,8 @@ func TestReplacePieceAction(t *testing.T) {
 		TimerExceeded: false,
 	}
 
-	j, _ := json.Marshal(&action)
-	g.HandleAction(j)
+	j, _ := action.ToJSON()
+	g.ReceiveActionRequest(j)
 
 	// Valid action
 	action = game.ActionRequest{
@@ -449,18 +437,17 @@ func TestReplacePieceAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err := action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	response, err := g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
 	}
 
-	var ar game.ActionResponse
-	err = json.Unmarshal(response, &ar)
+	_, err = game.ParseActionResponse(response)
 	if err != nil {
 		t.Fatalf("can't parse action response: %v", err)
 	}
@@ -483,12 +470,12 @@ func TestReplacePieceAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action was handled: %v", err)
 	}
@@ -511,12 +498,12 @@ func TestReplacePieceAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 2 was handled")
 	}
@@ -539,12 +526,12 @@ func TestReplacePieceAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 3 was handled")
 	}
@@ -559,10 +546,7 @@ func TestReplacePieceAction(t *testing.T) {
 }
 
 func TestAddCombinationAction(t *testing.T) {
-	g, err := game.NewTestGame()
-	if err != nil {
-		t.Fatalf("test game creation Fatal: %v", err)
-	}
+	g, _ := game.NewTestGame()
 
 	action := game.ActionRequest{
 		Player:        "p1",
@@ -571,8 +555,8 @@ func TestAddCombinationAction(t *testing.T) {
 		TimerExceeded: false,
 	}
 
-	j, _ := json.Marshal(&action)
-	g.HandleAction(j)
+	j, _ := action.ToJSON()
+	g.ReceiveActionRequest(j)
 
 	// Valid action
 	action = game.ActionRequest{
@@ -582,18 +566,17 @@ func TestAddCombinationAction(t *testing.T) {
 		TimerExceeded: false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err := action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	response, err := g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
 	}
 
-	var ar game.ActionResponse
-	err = json.Unmarshal(response, &ar)
+	_, err = game.ParseActionResponse(response)
 	if err != nil {
 		t.Fatalf("can't parse action response: %v", err)
 	}
@@ -614,12 +597,12 @@ func TestAddCombinationAction(t *testing.T) {
 		TimerExceeded: false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action was handled: %v", err)
 	}
@@ -640,12 +623,12 @@ func TestAddCombinationAction(t *testing.T) {
 		TimerExceeded: false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 2 was handled")
 	}
@@ -660,10 +643,7 @@ func TestAddCombinationAction(t *testing.T) {
 }
 
 func TestConcatCombinationsAction(t *testing.T) {
-	g, err := game.NewTestGame()
-	if err != nil {
-		t.Fatalf("test game creation Fatal: %v", err)
-	}
+	g, _ := game.NewTestGame()
 
 	action := game.ActionRequest{
 		Player:        "p1",
@@ -672,8 +652,8 @@ func TestConcatCombinationsAction(t *testing.T) {
 		TimerExceeded: false,
 	}
 
-	j, _ := json.Marshal(&action)
-	g.HandleAction(j)
+	j, _ := action.ToJSON()
+	g.ReceiveActionRequest(j)
 
 	action = game.ActionRequest{
 		Player:        "p1",
@@ -682,8 +662,8 @@ func TestConcatCombinationsAction(t *testing.T) {
 		TimerExceeded: false,
 	}
 
-	j, _ = json.Marshal(&action)
-	g.HandleAction(j)
+	j, _ = action.ToJSON()
+	g.ReceiveActionRequest(j)
 
 	action = game.ActionRequest{
 		Player:        "p1",
@@ -692,8 +672,8 @@ func TestConcatCombinationsAction(t *testing.T) {
 		TimerExceeded: false,
 	}
 
-	j, _ = json.Marshal(&action)
-	g.HandleAction(j)
+	j, _ = action.ToJSON()
+	g.ReceiveActionRequest(j)
 
 	action = game.ActionRequest{
 		Player:        "p1",
@@ -702,8 +682,8 @@ func TestConcatCombinationsAction(t *testing.T) {
 		TimerExceeded: false,
 	}
 
-	j, _ = json.Marshal(&action)
-	g.HandleAction(j)
+	j, _ = action.ToJSON()
+	g.ReceiveActionRequest(j)
 
 	// Valid action
 	action = game.ActionRequest{
@@ -713,18 +693,17 @@ func TestConcatCombinationsAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err := action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	response, err := g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
 	}
 
-	var ar game.ActionResponse
-	err = json.Unmarshal(response, &ar)
+	_, err = game.ParseActionResponse(response)
 	if err != nil {
 		t.Fatalf("can't parse action response: %v", err)
 	}
@@ -745,12 +724,12 @@ func TestConcatCombinationsAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action was handled: %v", err)
 	}
@@ -771,12 +750,12 @@ func TestConcatCombinationsAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 2 was handled")
 	}
@@ -791,10 +770,7 @@ func TestConcatCombinationsAction(t *testing.T) {
 }
 
 func TestSplitCombinationsAction(t *testing.T) {
-	g, err := game.NewTestGame()
-	if err != nil {
-		t.Fatalf("test game creation Fatal: %v", err)
-	}
+	g, _ := game.NewTestGame()
 
 	action := game.ActionRequest{
 		Player:        "p1",
@@ -803,8 +779,8 @@ func TestSplitCombinationsAction(t *testing.T) {
 		TimerExceeded: false,
 	}
 
-	j, _ := json.Marshal(&action)
-	g.HandleAction(j)
+	j, _ := action.ToJSON()
+	g.ReceiveActionRequest(j)
 
 	// Valid action
 	action = game.ActionRequest{
@@ -815,18 +791,17 @@ func TestSplitCombinationsAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err := action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	response, err := g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
 	}
 
-	var ar game.ActionResponse
-	err = json.Unmarshal(response, &ar)
+	_, err = game.ParseActionResponse(response)
 	if err != nil {
 		t.Fatalf("can't parse action response: %v", err)
 	}
@@ -848,12 +823,12 @@ func TestSplitCombinationsAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action was handled: %v", err)
 	}
@@ -875,12 +850,12 @@ func TestSplitCombinationsAction(t *testing.T) {
 		TimerExceeded:    false,
 	}
 
-	j, err = json.Marshal(&action)
+	j, err = action.ToJSON()
 	if err != nil {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 2 was handled")
 	}

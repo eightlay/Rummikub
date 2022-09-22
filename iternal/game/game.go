@@ -19,6 +19,10 @@ type Game struct {
 	hands      map[player]hand
 	stages     map[player]stage
 	stepNumber int
+	turn       int
+	players    []player
+	finished   bool
+	winner     player
 }
 
 // Get current number of combinations on the field
@@ -37,8 +41,13 @@ func NewGame(players []string) (*Game, error) {
 		return nil, fmt.Errorf("must be from two to four players")
 	}
 
-	hands := createHands(players)
-	stages := createStages(players)
+	players_ := []player{}
+	for _, p := range players {
+		players_ = append(players_, player(p))
+	}
+
+	hands := createHands(players_)
+	stages := createStages(players_)
 
 	return &Game{
 		field:      field{},
@@ -47,6 +56,8 @@ func NewGame(players []string) (*Game, error) {
 		hands:      hands,
 		stages:     stages,
 		stepNumber: 1,
+		players:    players_,
+		finished:   false,
 	}, nil
 }
 
@@ -67,6 +78,7 @@ func NewTestGame() (*Game, error) {
 func (g *Game) Start() {
 	g.shuffleBank()
 	g.firstPick()
+	g.turnQueue()
 }
 
 // Start game for testing
@@ -90,34 +102,64 @@ func (g *Game) firstPick() {
 	}
 }
 
-// Get current game state in JSON format
-func (g *Game) CurrentState(request []byte) ([]byte, error) {
-	// Parse request
-	sr := StateRequest{}
-
-	err := json.Unmarshal(request, &sr)
-	if err != nil {
-		return nil, fmt.Errorf("can't get current state: %v", err)
+// Create turn queue
+func (g *Game) turnQueue() {
+	firstPlayerIndex := -1
+	firstPlayerValue := MinNumber - 1
+	if firstPlayerValue > JokerNumber {
+		firstPlayerValue = JokerNumber
 	}
 
-	player_ := player(sr.Player)
+	for i, p := range g.players {
+		largest := g.hands[p].largestPieceNumber()
 
+		if firstPlayerValue > largest {
+			firstPlayerIndex = i
+			firstPlayerValue = largest
+		}
+	}
+
+	g.turn = firstPlayerIndex
+}
+
+// Get current game state in JSON format
+func (g *Game) CurrentState() ([]byte, error) {
 	// Create response
 	state := StateResponse{
-		Hand:     map[int][]byte{},
-		Field:    map[int][]byte{},
-		Actions:  []byte{},
-		BankSize: len(g.bank),
+		PlayerStates: map[player][]byte{},
+		Field:        map[int][]byte{},
+		BankSize:     len(g.bank),
+		Turn:         g.players[g.turn],
+		Finished:     g.finished,
+		Winner:       g.winner,
 	}
 
-	// Player's hand
-	for i, p := range g.hands[player_] {
-		j, err := p.toJSON()
+	for _, player_ := range g.players {
+		playerState := PlayerStateResponse{
+			Hand:    map[int][]byte{},
+			Actions: []byte{},
+		}
+
+		convertedHand, err := g.hands[player_].toJSON()
 		if err != nil {
 			return nil, fmt.Errorf("can't get current state: %v", err)
 		}
+		playerState.Hand = convertedHand
 
-		state.Hand[i] = j
+		// Action list
+		actions := g.stages[player_].availableActions()
+
+		j, err := json.Marshal(actions)
+		if err != nil {
+			return nil, fmt.Errorf("can't get current state: %v", err)
+		}
+		playerState.Actions = j
+
+		j, err = playerState.ToJSON()
+		if err != nil {
+			return nil, fmt.Errorf("can't get current state: %v", err)
+		}
+		state.PlayerStates[player_] = j
 	}
 
 	// Game field
@@ -130,65 +172,82 @@ func (g *Game) CurrentState(request []byte) ([]byte, error) {
 		state.Field[s.number] = j
 	}
 
-	// Action list
-	var actions []action
-
-	if g.stages[player_] == initialMeldStage {
-		actions = initialActions[:]
-	} else {
-		actions = mainActions[:]
-	}
-
-	j, err := json.Marshal(actions)
-	if err != nil {
-		return nil, fmt.Errorf("can't get current state: %v", err)
-	}
-	state.Actions = j
-
 	// Convert response to json
-	j, err = json.Marshal(&state)
-	if err != nil {
-		return nil, fmt.Errorf("can't get current state: %v", err)
-	}
-
-	return j, nil
+	return state.ToJSON()
 }
 
-// Handle player's action
-func (g *Game) HandleAction(request []byte) ([]byte, error) {
+// Receive action request
+func (g *Game) ReceiveActionRequest(request []byte) ([]byte, error) {
 	// Parse request
-	ar := ActionRequest{}
-
-	err := json.Unmarshal(request, &ar)
+	ar, err := ParseActionRequest(request)
 	if err != nil {
 		return nil, fmt.Errorf("can't get handle action: %v", err)
 	}
 
+	// Check if it's requested player's move
+
+	// Handle action
+	response, err := g.handleAction(ar)
+
+	if err == nil {
+		// Check if game is finished
+		if !g.gameFinished() {
+			g.nextPlayer()
+		}
+	}
+
+	return response, err
+}
+
+// Check if game is finished
+func (g *Game) gameFinished() bool {
+	player_ := g.players[g.turn]
+	finished := len(g.hands[player_]) == 0
+
+	if finished {
+		g.finished = true
+		g.winner = g.players[g.turn]
+	}
+
+	return finished
+}
+
+// Next player
+func (g *Game) nextPlayer() {
+	g.turn += 1
+
+	if g.turn == len(g.players) {
+		g.turn = 0
+	}
+}
+
+// Handle player's action
+func (g *Game) handleAction(ar *ActionRequest) ([]byte, error) {
 	// Handle action
 	if ar.TimerExceeded || ar.Action == Pass {
-		g.applyPenalty(&ar)
+		g.applyPenalty(ar)
 		return actionSuccess()
 	}
 
 	switch ar.Action {
 	case InitialMeld:
-		response, err := g.initialMeldHandle(&ar)
+		response, err := g.initialMeldHandle(ar)
 		if err == nil {
 			g.stages[player(ar.Player)] = mainGameStage
 		}
 		return response, err
 	case AddPiece:
-		return g.addRemovePieceHandle(&ar, true)
+		return g.addRemovePieceHandle(ar, true)
 	case RemovePiece:
-		return g.addRemovePieceHandle(&ar, false)
+		return g.addRemovePieceHandle(ar, false)
 	case ReplacePiece:
-		return g.replacePieceHandle(&ar)
+		return g.replacePieceHandle(ar)
 	case AddCombination:
-		return g.addCombinationHandle(&ar)
+		return g.addCombinationHandle(ar)
 	case ConcatCombinations:
-		return g.concatCombinations(&ar)
+		return g.concatCombinations(ar)
 	case SplitCombination:
-		return g.splitCombination(&ar)
+		return g.splitCombination(ar)
 	}
 
 	return actionError(fmt.Errorf("unknown action"))
