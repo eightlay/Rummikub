@@ -35,6 +35,7 @@ type StateResponse struct {
 	PlayerStates map[player][]byte `json:"playerStates"`
 	Field        map[int][]byte    `json:"field"`
 	BankSize     int               `json:"bankSize"`
+	Turn         player            `json:"turn"`
 }
 
 // Parse StateResponse from JSON

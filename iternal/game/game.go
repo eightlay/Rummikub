@@ -135,6 +135,7 @@ func (g *Game) CurrentState(request []byte) ([]byte, error) {
 		PlayerStates: map[player][]byte{},
 		Field:        map[int][]byte{},
 		BankSize:     len(g.bank),
+		Turn:         g.players[g.turn],
 	}
 
 	for _, player_ := range g.players {
