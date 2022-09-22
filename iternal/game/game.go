@@ -21,6 +21,8 @@ type Game struct {
 	stepNumber int
 	turn       int
 	players    []player
+	finished   bool
+	winner     player
 }
 
 // Get current number of combinations on the field
@@ -55,6 +57,7 @@ func NewGame(players []string) (*Game, error) {
 		stages:     stages,
 		stepNumber: 1,
 		players:    players_,
+		finished:   false,
 	}, nil
 }
 
@@ -117,15 +120,6 @@ func (g *Game) turnQueue() {
 	}
 
 	g.turn = firstPlayerIndex
-}
-
-// Next player
-func (g *Game) nextPlayer() {
-	g.turn += 1
-
-	if g.turn == len(g.players) {
-		g.turn = 0
-	}
 }
 
 // Get current game state in JSON format
@@ -193,13 +187,41 @@ func (g *Game) ReceiveActionRequest(request []byte) ([]byte, error) {
 		return nil, fmt.Errorf("can't get handle action: %v", err)
 	}
 
+	// Check if it's requested player's move
+
+	// Handle action
 	response, err := g.handleAction(ar)
 
 	if err == nil {
-		g.nextPlayer()
+		// Check if game is finished
+		if !g.gameFinished() {
+			g.nextPlayer()
+		}
 	}
 
 	return response, err
+}
+
+// Check if game is finished
+func (g *Game) gameFinished() bool {
+	player_ := g.players[g.turn]
+	finished := len(g.hands[player_]) == 0
+
+	if finished {
+		g.finished = true
+		g.winner = g.players[g.turn]
+	}
+
+	return finished
+}
+
+// Next player
+func (g *Game) nextPlayer() {
+	g.turn += 1
+
+	if g.turn == len(g.players) {
+		g.turn = 0
+	}
 }
 
 // Handle player's action
