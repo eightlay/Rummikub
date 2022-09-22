@@ -59,10 +59,10 @@ func validInitialMeld(pieces []*Piece) *Combination {
 
 // Return combination if provided pieces present valid combination
 func validCombination(pieces []*Piece) *Combination {
-	validGroup := validGroup(pieces)
+	validGroup := isValidGroup(pieces)
 
 	if !validGroup {
-		validRun := validRun(pieces)
+		validRun := isValidRun(pieces)
 
 		if !validRun {
 
@@ -86,7 +86,7 @@ func validCombination(pieces []*Piece) *Combination {
 }
 
 // Check if provided pieces present valid group
-func validGroup(pieces []*Piece) bool {
+func isValidGroup(pieces []*Piece) bool {
 	if len(pieces) < MinGroupSize || len(pieces) > MaxGroupSize {
 		return false
 	}
@@ -122,7 +122,7 @@ func validGroup(pieces []*Piece) bool {
 }
 
 // Check if provided pieces present valid run
-func validRun(pieces_ []*Piece) bool {
+func isValidRun(pieces_ []*Piece) bool {
 	if len(pieces_) < MinRunSize {
 		return false
 	}
