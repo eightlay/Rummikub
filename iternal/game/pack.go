@@ -1,7 +1,9 @@
 package game
 
+// Pack of pieces
 type pack []*Piece
 
+// Create initial pack (bank)
 func createInitialPack() pack {
 	b := pack{}
 

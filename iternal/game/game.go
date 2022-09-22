@@ -9,6 +9,9 @@ import (
 	"strings"
 )
 
+// Game
+//
+// Handles players' actions, provides game logic and tracks history
 type Game struct {
 	field      field
 	history    *history
@@ -18,14 +21,17 @@ type Game struct {
 	stepNumber int
 }
 
+// Get current number of combinations on the field
 func (g *Game) FieldSize() int {
 	return len(g.field)
 }
 
+// Get current number of pieces in the player's hand
 func (g *Game) HandSize(player_ string) int {
 	return len(g.hands[player(player_)])
 }
 
+// Create new game
 func NewGame(players []string) (*Game, error) {
 	if len(players) > 4 || len(players) < 2 {
 		return nil, fmt.Errorf("must be from two to four players")
@@ -44,6 +50,7 @@ func NewGame(players []string) (*Game, error) {
 	}, nil
 }
 
+// Create new game for testing
 func NewTestGame() (*Game, error) {
 	players := []string{"p1", "p2"}
 
@@ -64,15 +71,18 @@ func NewTestGame() (*Game, error) {
 	return g, nil
 }
 
+// Start game
 func (g *Game) Start() {
 	g.shuffleBank()
 	g.firstPick()
 }
 
+// Start game for testing
 func (g *Game) testStart() {
 	g.firstPick()
 }
 
+// Randomly shuffle bank
 func (g *Game) shuffleBank() {
 	for i := range g.bank {
 		j := rand.Intn(i + 1)
@@ -80,6 +90,7 @@ func (g *Game) shuffleBank() {
 	}
 }
 
+// Deal pieces to players
 func (g *Game) firstPick() {
 	for p := range g.hands {
 		g.hands[p] = hand(g.bank[:HandSize])
@@ -87,6 +98,7 @@ func (g *Game) firstPick() {
 	}
 }
 
+// Get current game state in JSON format
 func (g *Game) CurrentState(request []byte) ([]byte, error) {
 	// Parse request
 	sr := StateRequest{}
@@ -150,6 +162,7 @@ func (g *Game) CurrentState(request []byte) ([]byte, error) {
 	return j, nil
 }
 
+// Handle player's action
 func (g *Game) HandleAction(request []byte) ([]byte, error) {
 	// Parse request
 	ar := ActionRequest{}
@@ -189,6 +202,7 @@ func (g *Game) HandleAction(request []byte) ([]byte, error) {
 	return actionError(fmt.Errorf("unknown action"))
 }
 
+// Add penalty pieces to the player's hand
 func (g *Game) applyPenalty(ar *ActionRequest) {
 	player_ := player(ar.Player)
 	bankLen := len(g.bank)
@@ -206,6 +220,7 @@ func (g *Game) applyPenalty(ar *ActionRequest) {
 	g.bank = g.bank[slicePos:]
 }
 
+// Initial meld action handler
 func (g *Game) initialMeldHandle(ar *ActionRequest) ([]byte, error) {
 	player_ := player(ar.Player)
 
@@ -229,6 +244,7 @@ func (g *Game) initialMeldHandle(ar *ActionRequest) ([]byte, error) {
 	return actionError(fmt.Errorf("invalid combination"))
 }
 
+// Place combination on the field
 func (g *Game) placeCombination(player_ player, comb *Combination) {
 	s := &step{
 		number:   g.stepNumber,
@@ -246,6 +262,7 @@ func (g *Game) placeCombination(player_ player, comb *Combination) {
 	g.history.combinations[s] = comb
 }
 
+// Add and remove action handler
 func (g *Game) addRemovePieceHandle(ar *ActionRequest, addFlag bool) ([]byte, error) {
 	player_ := player(ar.Player)
 
@@ -315,6 +332,7 @@ func (g *Game) addRemovePieceHandle(ar *ActionRequest, addFlag bool) ([]byte, er
 	return actionSuccess()
 }
 
+// Find combination by its step number on the field
 func (g *Game) combinationByStepNumber(stepNumber int) *Combination {
 	for s, c := range g.field {
 		if s.number == stepNumber {
@@ -324,6 +342,7 @@ func (g *Game) combinationByStepNumber(stepNumber int) *Combination {
 	return nil
 }
 
+// Delete combination by its step number from the field
 func (g *Game) deleteCombinationByStepNumber(stepNumber int) {
 	for s := range g.field {
 		if s.number == stepNumber {
@@ -332,6 +351,7 @@ func (g *Game) deleteCombinationByStepNumber(stepNumber int) {
 	}
 }
 
+// Find piece by its index in the player's hand
 func (g *Game) pieceByIndex(player_ player, pieceIndex int) *Piece {
 	if pieceIndex >= len(g.hands[player_]) {
 		return nil
@@ -339,6 +359,7 @@ func (g *Game) pieceByIndex(player_ player, pieceIndex int) *Piece {
 	return g.hands[player_][pieceIndex]
 }
 
+// Gather pieces together from player's hand by their indeces
 func (g *Game) gatherPieces(player_ player, pieceIndeces []int) ([]*Piece, int) {
 	pieces := []*Piece{}
 
@@ -354,10 +375,12 @@ func (g *Game) gatherPieces(player_ player, pieceIndeces []int) ([]*Piece, int) 
 	return pieces, -1
 }
 
+// Add piece to the player's hand
 func (g *Game) addPieceToHand(player_ player, piece *Piece) {
 	g.hands[player_] = append(g.hands[player_], piece)
 }
 
+// Remove pieces from the player's hand by their indeces
 func (g *Game) removePiecesFromHand(player_ player, pieceIndeces []int) {
 	indeces := pieceIndeces[:]
 	sort.Sort(sort.Reverse(sort.IntSlice(indeces)))
@@ -367,6 +390,7 @@ func (g *Game) removePiecesFromHand(player_ player, pieceIndeces []int) {
 	}
 }
 
+// Remove piece by its index from the player's hand
 func (g *Game) removePieceFromHand(player_ player, pieceIndex int) {
 	g.hands[player_] = append(
 		g.hands[player_][:pieceIndex],
@@ -374,6 +398,7 @@ func (g *Game) removePieceFromHand(player_ player, pieceIndex int) {
 	)
 }
 
+// Repalce action handler
 func (g *Game) replacePieceHandle(ar *ActionRequest) ([]byte, error) {
 	player_ := player(ar.Player)
 
@@ -423,6 +448,7 @@ func (g *Game) replacePieceHandle(ar *ActionRequest) ([]byte, error) {
 	return actionSuccess()
 }
 
+// Add combination action handler
 func (g *Game) addCombinationHandle(ar *ActionRequest) ([]byte, error) {
 	player_ := player(ar.Player)
 
@@ -446,6 +472,7 @@ func (g *Game) addCombinationHandle(ar *ActionRequest) ([]byte, error) {
 	return actionError(fmt.Errorf("invalid combination"))
 }
 
+// Split combination action handler
 func (g *Game) splitCombination(ar *ActionRequest) ([]byte, error) {
 	player_ := player(ar.Player)
 
@@ -493,6 +520,7 @@ func (g *Game) splitCombination(ar *ActionRequest) ([]byte, error) {
 	return actionSuccess()
 }
 
+// Concat combinations action handler
 func (g *Game) concatCombinations(ar *ActionRequest) ([]byte, error) {
 	player_ := player(ar.Player)
 
