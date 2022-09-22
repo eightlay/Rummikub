@@ -123,13 +123,7 @@ func (g *Game) turnQueue() {
 }
 
 // Get current game state in JSON format
-func (g *Game) CurrentState(request []byte) ([]byte, error) {
-	// Parse request
-	_, err := ParseStateRequest(request)
-	if err != nil {
-		return nil, fmt.Errorf("can't get current state: %v", err)
-	}
-
+func (g *Game) CurrentState() ([]byte, error) {
 	// Create response
 	state := StateResponse{
 		PlayerStates: map[player][]byte{},

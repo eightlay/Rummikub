@@ -5,31 +5,6 @@ import (
 	"fmt"
 )
 
-// Request game state for the player
-type StateRequest struct{}
-
-// Parse StateRequest from JSON
-func ParseStateRequest(request []byte) (*StateRequest, error) {
-	// Parse request
-	sr := &StateRequest{}
-
-	err := json.Unmarshal(request, sr)
-	if err != nil {
-		return nil, fmt.Errorf("can't parse state request: %v", err)
-	}
-
-	return sr, nil
-}
-
-// Convert StateRequest to JSON
-func (sr *StateRequest) ToJSON() ([]byte, error) {
-	j, err := json.Marshal(sr)
-	if err != nil {
-		return nil, fmt.Errorf("can't convert current state: %v", err)
-	}
-	return j, nil
-}
-
 // Current game state
 type StateResponse struct {
 	PlayerStates map[player][]byte `json:"playerStates"`
