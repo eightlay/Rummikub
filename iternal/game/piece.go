@@ -6,16 +6,22 @@ import (
 	"sort"
 )
 
+// Piece
+//
+// Contains information about piece's nubmer,
+// color and flag is it joker or not
 type Piece struct {
 	Number int   `json:"number"`
 	Color  color `json:"color"`
 	Joker  bool  `json:"joker"`
 }
 
+// Create new piece
 func createPiece(number int, color_ color, joker bool) *Piece {
 	return &Piece{number, color_, joker}
 }
 
+// Convert piece to JSON format
 func (p *Piece) toJSON() ([]byte, error) {
 	b, err := json.Marshal(p)
 	if err != nil {
@@ -24,6 +30,7 @@ func (p *Piece) toJSON() ([]byte, error) {
 	return b, nil
 }
 
+// Sort the given pieces
 func sortPieces(pieces_ []*Piece) []*Piece {
 	pieces := pieces_[:]
 
@@ -34,6 +41,7 @@ func sortPieces(pieces_ []*Piece) []*Piece {
 	return pieces
 }
 
+// Set default joker parameters to the joker piece
 func (p *Piece) clearIfJoker() {
 	if p.Joker {
 		p.Number = JokerNumber

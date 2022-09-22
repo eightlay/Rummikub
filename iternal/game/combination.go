@@ -7,19 +7,27 @@ import (
 	mapset "github.com/deckarep/golang-set/v2"
 )
 
+// Combination type
+//
+// Existing types: group, run
 type combinationType string
 
 const (
-	notCombination combinationType = ""
-	group          combinationType = "G"
-	run            combinationType = "R"
+	// Group combination type
+	group combinationType = "G"
+	// Run combination type
+	run combinationType = "R"
 )
 
+// Combination
+//
+// Contains information about used pieces and combination type
 type Combination struct {
 	Pieces pack            `json:"pieces"`
 	Type   combinationType `json:"type"`
 }
 
+// Convert combination to JSON format
 func (c *Combination) toJSON() ([]byte, error) {
 	b, err := json.Marshal(c)
 	if err != nil {
@@ -28,6 +36,7 @@ func (c *Combination) toJSON() ([]byte, error) {
 	return b, nil
 }
 
+// Returns combination if provided pieces present valid initial meld
 func validInitialMeld(pieces []*Piece) *Combination {
 	newCombination := validCombination(pieces)
 
@@ -48,11 +57,12 @@ func validInitialMeld(pieces []*Piece) *Combination {
 	return nil
 }
 
+// Return combination if provided pieces present valid combination
 func validCombination(pieces []*Piece) *Combination {
-	validGroup := validGroup(pieces)
+	validGroup := isValidGroup(pieces)
 
 	if !validGroup {
-		validRun := validRun(pieces)
+		validRun := isValidRun(pieces)
 
 		if !validRun {
 
@@ -75,7 +85,8 @@ func validCombination(pieces []*Piece) *Combination {
 	}
 }
 
-func validGroup(pieces []*Piece) bool {
+// Check if provided pieces present valid group
+func isValidGroup(pieces []*Piece) bool {
 	if len(pieces) < MinGroupSize || len(pieces) > MaxGroupSize {
 		return false
 	}
@@ -110,7 +121,8 @@ func validGroup(pieces []*Piece) bool {
 	return true
 }
 
-func validRun(pieces_ []*Piece) bool {
+// Check if provided pieces present valid run
+func isValidRun(pieces_ []*Piece) bool {
 	if len(pieces_) < MinRunSize {
 		return false
 	}
