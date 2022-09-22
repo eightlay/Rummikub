@@ -10,9 +10,8 @@ import (
 type combinationType string
 
 const (
-	notCombination combinationType = ""
-	group          combinationType = "G"
-	run            combinationType = "R"
+	group combinationType = "G"
+	run   combinationType = "R"
 )
 
 type Combination struct {
