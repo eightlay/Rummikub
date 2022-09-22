@@ -4,11 +4,11 @@ package game
 type hand pack
 
 // Create hands for players
-func createHands(players []string) map[player]hand {
+func createHands(players []player) map[player]hand {
 	hands := map[player]hand{}
 
 	for _, p := range players {
-		hands[player(p)] = hand{}
+		hands[p] = hand{}
 	}
 
 	return hands

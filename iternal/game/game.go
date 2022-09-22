@@ -37,8 +37,13 @@ func NewGame(players []string) (*Game, error) {
 		return nil, fmt.Errorf("must be from two to four players")
 	}
 
-	hands := createHands(players)
-	stages := createStages(players)
+	players_ := []player{}
+	for _, p := range players {
+		players_ = append(players_, player(p))
+	}
+
+	hands := createHands(players_)
+	stages := createStages(players_)
 
 	return &Game{
 		field:      field{},
