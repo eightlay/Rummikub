@@ -19,6 +19,8 @@ type Game struct {
 	hands      map[player]hand
 	stages     map[player]stage
 	stepNumber int
+	turn       int
+	players    []player
 }
 
 // Get current number of combinations on the field
@@ -52,6 +54,7 @@ func NewGame(players []string) (*Game, error) {
 		hands:      hands,
 		stages:     stages,
 		stepNumber: 1,
+		players:    players_,
 	}, nil
 }
 
@@ -72,6 +75,7 @@ func NewTestGame() (*Game, error) {
 func (g *Game) Start() {
 	g.shuffleBank()
 	g.firstPick()
+	g.turnQueue()
 }
 
 // Start game for testing
@@ -92,6 +96,35 @@ func (g *Game) firstPick() {
 	for p := range g.hands {
 		g.hands[p] = hand(g.bank[:HandSize])
 		g.bank = g.bank[HandSize:]
+	}
+}
+
+// Create turn queue
+func (g *Game) turnQueue() {
+	firstPlayerIndex := -1
+	firstPlayerValue := MinNumber - 1
+	if firstPlayerValue > JokerNumber {
+		firstPlayerValue = JokerNumber
+	}
+
+	for i, p := range g.players {
+		largest := g.hands[p].largestPieceNumber()
+
+		if firstPlayerValue > largest {
+			firstPlayerIndex = i
+			firstPlayerValue = largest
+		}
+	}
+
+	g.turn = firstPlayerIndex
+}
+
+// Next player
+func (g *Game) nextPlayer() {
+	g.turn += 1
+
+	if g.turn == len(g.players) {
+		g.turn = 0
 	}
 }
 
