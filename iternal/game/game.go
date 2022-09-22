@@ -131,31 +131,44 @@ func (g *Game) nextPlayer() {
 // Get current game state in JSON format
 func (g *Game) CurrentState(request []byte) ([]byte, error) {
 	// Parse request
-	sr := StateRequest{}
-
-	err := json.Unmarshal(request, &sr)
+	_, err := ParseStateRequest(request)
 	if err != nil {
 		return nil, fmt.Errorf("can't get current state: %v", err)
 	}
 
-	player_ := player(sr.Player)
-
 	// Create response
 	state := StateResponse{
-		Hand:     map[int][]byte{},
-		Field:    map[int][]byte{},
-		Actions:  []byte{},
-		BankSize: len(g.bank),
+		PlayerStates: map[player][]byte{},
+		Field:        map[int][]byte{},
+		BankSize:     len(g.bank),
 	}
 
-	// Player's hand
-	for i, p := range g.hands[player_] {
-		j, err := p.toJSON()
+	for _, player_ := range g.players {
+		playerState := PlayerStateResponse{
+			Hand:    map[int][]byte{},
+			Actions: []byte{},
+		}
+
+		convertedHand, err := g.hands[player_].toJSON()
 		if err != nil {
 			return nil, fmt.Errorf("can't get current state: %v", err)
 		}
+		playerState.Hand = convertedHand
 
-		state.Hand[i] = j
+		// Action list
+		actions := g.stages[player_].availableActions()
+
+		j, err := json.Marshal(actions)
+		if err != nil {
+			return nil, fmt.Errorf("can't get current state: %v", err)
+		}
+		playerState.Actions = j
+
+		j, err = playerState.ToJSON()
+		if err != nil {
+			return nil, fmt.Errorf("can't get current state: %v", err)
+		}
+		state.PlayerStates[player_] = j
 	}
 
 	// Game field
@@ -168,65 +181,54 @@ func (g *Game) CurrentState(request []byte) ([]byte, error) {
 		state.Field[s.number] = j
 	}
 
-	// Action list
-	var actions []action
-
-	if g.stages[player_] == initialMeldStage {
-		actions = initialActions[:]
-	} else {
-		actions = mainActions[:]
-	}
-
-	j, err := json.Marshal(actions)
-	if err != nil {
-		return nil, fmt.Errorf("can't get current state: %v", err)
-	}
-	state.Actions = j
-
 	// Convert response to json
-	j, err = json.Marshal(&state)
-	if err != nil {
-		return nil, fmt.Errorf("can't get current state: %v", err)
-	}
-
-	return j, nil
+	return state.ToJSON()
 }
 
-// Handle player's action
-func (g *Game) HandleAction(request []byte) ([]byte, error) {
+// Receive action request
+func (g *Game) ReceiveActionRequest(request []byte) ([]byte, error) {
 	// Parse request
-	ar := ActionRequest{}
-
-	err := json.Unmarshal(request, &ar)
+	ar, err := ParseActionRequest(request)
 	if err != nil {
 		return nil, fmt.Errorf("can't get handle action: %v", err)
 	}
 
+	response, err := g.handleAction(ar)
+
+	if err == nil {
+		g.nextPlayer()
+	}
+
+	return response, err
+}
+
+// Handle player's action
+func (g *Game) handleAction(ar *ActionRequest) ([]byte, error) {
 	// Handle action
 	if ar.TimerExceeded || ar.Action == Pass {
-		g.applyPenalty(&ar)
+		g.applyPenalty(ar)
 		return actionSuccess()
 	}
 
 	switch ar.Action {
 	case InitialMeld:
-		response, err := g.initialMeldHandle(&ar)
+		response, err := g.initialMeldHandle(ar)
 		if err == nil {
 			g.stages[player(ar.Player)] = mainGameStage
 		}
 		return response, err
 	case AddPiece:
-		return g.addRemovePieceHandle(&ar, true)
+		return g.addRemovePieceHandle(ar, true)
 	case RemovePiece:
-		return g.addRemovePieceHandle(&ar, false)
+		return g.addRemovePieceHandle(ar, false)
 	case ReplacePiece:
-		return g.replacePieceHandle(&ar)
+		return g.replacePieceHandle(ar)
 	case AddCombination:
-		return g.addCombinationHandle(&ar)
+		return g.addCombinationHandle(ar)
 	case ConcatCombinations:
-		return g.concatCombinations(&ar)
+		return g.concatCombinations(ar)
 	case SplitCombination:
-		return g.splitCombination(&ar)
+		return g.splitCombination(ar)
 	}
 
 	return actionError(fmt.Errorf("unknown action"))

@@ -6,9 +6,7 @@ import (
 )
 
 // Request game state for the player
-type StateRequest struct {
-	Player string `json:"player"`
-}
+type StateRequest struct{}
 
 // Parse StateRequest from JSON
 func ParseStateRequest(request []byte) (*StateRequest, error) {
@@ -32,12 +30,11 @@ func (sr *StateRequest) ToJSON() ([]byte, error) {
 	return j, nil
 }
 
-// Game state for the player
+// Current game state
 type StateResponse struct {
-	Hand     map[int][]byte `json:"hand"`
-	Field    map[int][]byte `json:"field"`
-	Actions  []byte         `json:"actions"`
-	BankSize int            `json:"bankSize"`
+	PlayerStates map[player][]byte `json:"playerStates"`
+	Field        map[int][]byte    `json:"field"`
+	BankSize     int               `json:"bankSize"`
 }
 
 // Parse StateResponse from JSON
@@ -46,7 +43,7 @@ func ParseStateResponse(request []byte) (*StateResponse, error) {
 
 	err := json.Unmarshal(request, sr)
 	if err != nil {
-		return nil, fmt.Errorf("can't parse state response: %v", err)
+		return nil, fmt.Errorf("can't parse game state response: %v", err)
 	}
 
 	return sr, nil
@@ -56,7 +53,35 @@ func ParseStateResponse(request []byte) (*StateResponse, error) {
 func (sr *StateResponse) ToJSON() ([]byte, error) {
 	j, err := json.Marshal(&sr)
 	if err != nil {
-		return nil, fmt.Errorf("can't convert  state response: %v", err)
+		return nil, fmt.Errorf("can't convert game state response: %v", err)
+	}
+
+	return j, nil
+}
+
+// Game state for the player
+type PlayerStateResponse struct {
+	Hand    map[int][]byte `json:"hand"`
+	Actions []byte         `json:"actions"`
+}
+
+// Parse PlayerStateResponse from JSON
+func ParsePlayerStateResponse(request []byte) (*PlayerStateResponse, error) {
+	sr := &PlayerStateResponse{}
+
+	err := json.Unmarshal(request, sr)
+	if err != nil {
+		return nil, fmt.Errorf("can't parse player state response: %v", err)
+	}
+
+	return sr, nil
+}
+
+// Convert PlayerStateResponse to JSON
+func (sr *PlayerStateResponse) ToJSON() ([]byte, error) {
+	j, err := json.Marshal(&sr)
+	if err != nil {
+		return nil, fmt.Errorf("can't convert player state response: %v", err)
 	}
 
 	return j, nil
@@ -134,5 +159,9 @@ func actionSuccess() ([]byte, error) {
 // Get error ActionResponse converted to JSON and error itself
 func actionError(err error) ([]byte, error) {
 	response := ActionResponse{false, err}
-	return response.ToJSON()
+	j, e := response.ToJSON()
+	if e != nil {
+		return nil, e
+	}
+	return j, err
 }

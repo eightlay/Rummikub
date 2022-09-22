@@ -22,7 +22,7 @@ func TestInitialMeldAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	response, err := g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
 	}
@@ -53,7 +53,7 @@ func TestInitialMeldAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action was handled: %v", err)
 	}
@@ -79,7 +79,7 @@ func TestInitialMeldAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 2 was handled")
 	}
@@ -107,7 +107,7 @@ func TestPassAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	response, err := g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
 	}
@@ -141,7 +141,7 @@ func TestTimeExceededAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	response, err := g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
 	}
@@ -171,7 +171,7 @@ func TestAddPieceAction(t *testing.T) {
 	}
 
 	j, _ := action.ToJSON()
-	g.HandleAction(j)
+	g.ReceiveActionRequest(j)
 
 	// Valid action
 	action = game.ActionRequest{
@@ -187,7 +187,7 @@ func TestAddPieceAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	response, err := g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
 	}
@@ -219,7 +219,7 @@ func TestAddPieceAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action was handled: %v", err)
 	}
@@ -246,7 +246,7 @@ func TestAddPieceAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 2 was handled")
 	}
@@ -273,7 +273,7 @@ func TestAddPieceAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 3 was handled")
 	}
@@ -298,7 +298,7 @@ func TestRemovePieceAction(t *testing.T) {
 	}
 
 	j, _ := action.ToJSON()
-	g.HandleAction(j)
+	g.ReceiveActionRequest(j)
 
 	// Valid action
 	action = game.ActionRequest{
@@ -314,7 +314,7 @@ func TestRemovePieceAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	response, err := g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
 	}
@@ -346,7 +346,7 @@ func TestRemovePieceAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action was handled: %v", err)
 	}
@@ -373,7 +373,7 @@ func TestRemovePieceAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 2 was handled")
 	}
@@ -400,7 +400,7 @@ func TestRemovePieceAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 3 was handled")
 	}
@@ -425,7 +425,7 @@ func TestReplacePieceAction(t *testing.T) {
 	}
 
 	j, _ := action.ToJSON()
-	g.HandleAction(j)
+	g.ReceiveActionRequest(j)
 
 	// Valid action
 	action = game.ActionRequest{
@@ -442,7 +442,7 @@ func TestReplacePieceAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	response, err := g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
 	}
@@ -475,7 +475,7 @@ func TestReplacePieceAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action was handled: %v", err)
 	}
@@ -503,7 +503,7 @@ func TestReplacePieceAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 2 was handled")
 	}
@@ -531,7 +531,7 @@ func TestReplacePieceAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 3 was handled")
 	}
@@ -556,7 +556,7 @@ func TestAddCombinationAction(t *testing.T) {
 	}
 
 	j, _ := action.ToJSON()
-	g.HandleAction(j)
+	g.ReceiveActionRequest(j)
 
 	// Valid action
 	action = game.ActionRequest{
@@ -571,7 +571,7 @@ func TestAddCombinationAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	response, err := g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
 	}
@@ -602,7 +602,7 @@ func TestAddCombinationAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action was handled: %v", err)
 	}
@@ -628,7 +628,7 @@ func TestAddCombinationAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 2 was handled")
 	}
@@ -653,7 +653,7 @@ func TestConcatCombinationsAction(t *testing.T) {
 	}
 
 	j, _ := action.ToJSON()
-	g.HandleAction(j)
+	g.ReceiveActionRequest(j)
 
 	action = game.ActionRequest{
 		Player:        "p1",
@@ -663,7 +663,7 @@ func TestConcatCombinationsAction(t *testing.T) {
 	}
 
 	j, _ = action.ToJSON()
-	g.HandleAction(j)
+	g.ReceiveActionRequest(j)
 
 	action = game.ActionRequest{
 		Player:        "p1",
@@ -673,7 +673,7 @@ func TestConcatCombinationsAction(t *testing.T) {
 	}
 
 	j, _ = action.ToJSON()
-	g.HandleAction(j)
+	g.ReceiveActionRequest(j)
 
 	action = game.ActionRequest{
 		Player:        "p1",
@@ -683,7 +683,7 @@ func TestConcatCombinationsAction(t *testing.T) {
 	}
 
 	j, _ = action.ToJSON()
-	g.HandleAction(j)
+	g.ReceiveActionRequest(j)
 
 	// Valid action
 	action = game.ActionRequest{
@@ -698,7 +698,7 @@ func TestConcatCombinationsAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	response, err := g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
 	}
@@ -729,7 +729,7 @@ func TestConcatCombinationsAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action was handled: %v", err)
 	}
@@ -755,7 +755,7 @@ func TestConcatCombinationsAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 2 was handled")
 	}
@@ -780,7 +780,7 @@ func TestSplitCombinationsAction(t *testing.T) {
 	}
 
 	j, _ := action.ToJSON()
-	g.HandleAction(j)
+	g.ReceiveActionRequest(j)
 
 	// Valid action
 	action = game.ActionRequest{
@@ -796,7 +796,7 @@ func TestSplitCombinationsAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	response, err := g.HandleAction(j)
+	response, err := g.ReceiveActionRequest(j)
 	if err != nil {
 		t.Fatalf("can't handle action: %v", err)
 	}
@@ -828,7 +828,7 @@ func TestSplitCombinationsAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action was handled: %v", err)
 	}
@@ -855,7 +855,7 @@ func TestSplitCombinationsAction(t *testing.T) {
 		t.Fatalf("can't convert action to json: %v", err)
 	}
 
-	_, err = g.HandleAction(j)
+	_, err = g.ReceiveActionRequest(j)
 	if err == nil {
 		t.Fatalf("invalid action 2 was handled")
 	}
