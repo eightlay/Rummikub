@@ -10,12 +10,19 @@ const (
 	mainGameStage
 )
 
+func (s stage) availableActions() []action {
+	if s == initialMeldStage {
+		return initialActions[:]
+	}
+	return mainActions[:]
+}
+
 // Create stage storage for players
-func createStages(players []string) map[player]stage {
+func createStages(players []player) map[player]stage {
 	hands := map[player]stage{}
 
 	for _, p := range players {
-		hands[player(p)] = initialMeldStage
+		hands[p] = initialMeldStage
 	}
 
 	return hands
