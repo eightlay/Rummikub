@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"os"
+
+	"github.com/eightlay/rummikub-server/iternal/server"
 )
 
 func main() {
@@ -11,4 +13,6 @@ func main() {
 		log.Fatalln(err)
 	}
 	log.SetOutput(file)
+
+	server.StartServer()
 }

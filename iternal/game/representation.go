@@ -7,12 +7,12 @@ import (
 
 // Current game state
 type StateResponse struct {
-	PlayerStates map[player][]byte `json:"playerStates"`
-	Field        map[int][]byte    `json:"field"`
-	BankSize     int               `json:"bankSize"`
-	Turn         player            `json:"turn"`
-	Finished     bool              `json:"finished"`
-	Winner       player            `json:"winner"`
+	PlayerStates map[player]*PlayerStateResponse `json:"playerStates"`
+	Field        map[int]*Combination            `json:"field"`
+	BankSize     int                             `json:"bankSize"`
+	Turn         player                          `json:"turn"`
+	Finished     bool                            `json:"finished"`
+	Winner       player                          `json:"winner"`
 }
 
 // Parse StateResponse from JSON
@@ -39,8 +39,8 @@ func (sr *StateResponse) ToJSON() ([]byte, error) {
 
 // Game state for the player
 type PlayerStateResponse struct {
-	Hand    map[int][]byte `json:"hand"`
-	Actions []byte         `json:"actions"`
+	Hand    hand     `json:"hand"`
+	Actions []action `json:"actions"`
 }
 
 // Parse PlayerStateResponse from JSON

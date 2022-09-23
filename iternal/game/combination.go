@@ -1,9 +1,6 @@
 package game
 
 import (
-	"encoding/json"
-	"fmt"
-
 	mapset "github.com/deckarep/golang-set/v2"
 )
 
@@ -25,15 +22,6 @@ const (
 type Combination struct {
 	Pieces pack            `json:"pieces"`
 	Type   combinationType `json:"type"`
-}
-
-// Convert combination to JSON format
-func (c *Combination) toJSON() ([]byte, error) {
-	b, err := json.Marshal(c)
-	if err != nil {
-		return nil, fmt.Errorf("can't conver combination to json: %v", err)
-	}
-	return b, nil
 }
 
 // Returns combination if provided pieces present valid initial meld

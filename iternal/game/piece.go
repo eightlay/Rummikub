@@ -1,8 +1,6 @@
 package game
 
 import (
-	"encoding/json"
-	"fmt"
 	"sort"
 )
 
@@ -19,15 +17,6 @@ type Piece struct {
 // Create new piece
 func createPiece(number int, color_ color, joker bool) *Piece {
 	return &Piece{number, color_, joker}
-}
-
-// Convert piece to JSON format
-func (p *Piece) toJSON() ([]byte, error) {
-	b, err := json.Marshal(p)
-	if err != nil {
-		return nil, fmt.Errorf("can't conver combination to json: %v", err)
-	}
-	return b, nil
 }
 
 // Sort the given pieces
