@@ -1,9 +1,9 @@
 package game
 
 import (
-	"encoding/json"
 	"fmt"
 	"math/rand"
+	"net/http"
 	"sort"
 	"strconv"
 	"strings"
@@ -37,7 +37,7 @@ func (g *Game) HandSize(player_ string) int {
 
 // Create new game
 func NewGame(players []string) (*Game, error) {
-	if len(players) > 4 || len(players) < 2 {
+	if len(players) > MaxPlayersNumber || len(players) < MinPlayersNumber {
 		return nil, fmt.Errorf("must be from two to four players")
 	}
 
@@ -113,7 +113,7 @@ func (g *Game) turnQueue() {
 	for i, p := range g.players {
 		largest := g.hands[p].largestPieceNumber()
 
-		if firstPlayerValue > largest {
+		if largest > firstPlayerValue {
 			firstPlayerIndex = i
 			firstPlayerValue = largest
 		}
@@ -123,53 +123,25 @@ func (g *Game) turnQueue() {
 }
 
 // Get current game state in JSON format
-func (g *Game) CurrentState() ([]byte, error) {
+func (g *Game) CurrentState(p string) ([]byte, error) {
+	player_ := player(p)
+
 	// Create response
 	state := StateResponse{
-		PlayerStates: map[player][]byte{},
-		Field:        map[int][]byte{},
-		BankSize:     len(g.bank),
-		Turn:         g.players[g.turn],
-		Finished:     g.finished,
-		Winner:       g.winner,
-	}
-
-	for _, player_ := range g.players {
-		playerState := PlayerStateResponse{
-			Hand:    map[int][]byte{},
-			Actions: []byte{},
-		}
-
-		convertedHand, err := g.hands[player_].toJSON()
-		if err != nil {
-			return nil, fmt.Errorf("can't get current state: %v", err)
-		}
-		playerState.Hand = convertedHand
-
-		// Action list
-		actions := g.stages[player_].availableActions()
-
-		j, err := json.Marshal(actions)
-		if err != nil {
-			return nil, fmt.Errorf("can't get current state: %v", err)
-		}
-		playerState.Actions = j
-
-		j, err = playerState.ToJSON()
-		if err != nil {
-			return nil, fmt.Errorf("can't get current state: %v", err)
-		}
-		state.PlayerStates[player_] = j
+		PlayerStates: &PlayerStateResponse{
+			Hand:    g.hands[player_],
+			Actions: g.stages[player_].availableActions(),
+		},
+		Field:    map[int]*Combination{},
+		BankSize: len(g.bank),
+		Turn:     g.players[g.turn] == player_,
+		Finished: g.finished,
+		Winner:   g.winner,
 	}
 
 	// Game field
 	for s, c := range g.field {
-		j, err := c.toJSON()
-		if err != nil {
-			return nil, fmt.Errorf("can't get current state: %v", err)
-		}
-
-		state.Field[s.number] = j
+		state.Field[s.number] = c
 	}
 
 	// Convert response to json
@@ -177,7 +149,7 @@ func (g *Game) CurrentState() ([]byte, error) {
 }
 
 // Receive action request
-func (g *Game) ReceiveActionRequest(request []byte) ([]byte, error) {
+func (g *Game) ReceiveActionRequest(request *http.Request) ([]byte, error) {
 	// Parse request
 	ar, err := ParseActionRequest(request)
 	if err != nil {
@@ -185,6 +157,13 @@ func (g *Game) ReceiveActionRequest(request []byte) ([]byte, error) {
 	}
 
 	// Check if it's requested player's move
+	player_ := player(ar.Player)
+	if _, ok := g.hands[player_]; !ok {
+		return actionError(fmt.Errorf("no player with name: %v", player_))
+	}
+	if player_ != g.players[g.turn] {
+		return actionError(fmt.Errorf("another player's turn"))
+	}
 
 	// Handle action
 	response, err := g.handleAction(ar)

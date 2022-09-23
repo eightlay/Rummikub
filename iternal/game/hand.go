@@ -1,7 +1,5 @@
 package game
 
-import "fmt"
-
 // Player's hand
 type hand pack
 
@@ -30,20 +28,4 @@ func (h hand) largestPieceNumber() int {
 	}
 
 	return largest
-}
-
-// Find largest piece number in the hand
-func (h hand) toJSON() (map[int][]byte, error) {
-	result := map[int][]byte{}
-
-	for i, piece := range h {
-		j, err := piece.toJSON()
-		if err != nil {
-			return nil, fmt.Errorf("can't get current state: %v", err)
-		}
-
-		result[i] = j
-	}
-
-	return result, nil
 }

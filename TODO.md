@@ -1,5 +1,2 @@
-- game logic
-- game server
-- split tests
-- refactor tests
+- refactor
 - finish readme usage section
