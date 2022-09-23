@@ -31,4 +31,9 @@ const (
 	MaxGroupSize int = 4
 	// Minimal size of the run combination type
 	MinRunSize int = 3
+
+	// Minimal number of players in the game
+	MinPlayersNumber = 2
+	// Maximal number of players in the game
+	MaxPlayersNumber = 4
 )

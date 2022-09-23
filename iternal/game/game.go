@@ -37,7 +37,7 @@ func (g *Game) HandSize(player_ string) int {
 
 // Create new game
 func NewGame(players []string) (*Game, error) {
-	if len(players) > 4 || len(players) < 2 {
+	if len(players) > MaxPlayersNumber || len(players) < MinPlayersNumber {
 		return nil, fmt.Errorf("must be from two to four players")
 	}
 
