@@ -9,7 +9,7 @@ import (
 func TestGameLogic(t *testing.T) {
 	g, _ := game.NewTestGame()
 
-	jsonState, err := g.CurrentState()
+	jsonState, err := g.CurrentState("p1")
 	if err != nil {
 		t.Fatalf("can't get current state: %v", err)
 	}
@@ -34,7 +34,7 @@ func TestGameLogic(t *testing.T) {
 
 	g.ReceiveActionRequest(action)
 
-	jsonState, _ = g.CurrentState()
+	jsonState, _ = g.CurrentState(string(futureWinner))
 	state, _ = game.ParseStateResponse(jsonState)
 
 	if !state.Finished {

@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"math/rand"
+	"net/http"
 	"sort"
 	"strconv"
 	"strings"
@@ -122,22 +123,20 @@ func (g *Game) turnQueue() {
 }
 
 // Get current game state in JSON format
-func (g *Game) CurrentState() ([]byte, error) {
+func (g *Game) CurrentState(p string) ([]byte, error) {
+	player_ := player(p)
+
 	// Create response
 	state := StateResponse{
-		PlayerStates: map[player]*PlayerStateResponse{},
-		Field:        map[int]*Combination{},
-		BankSize:     len(g.bank),
-		Turn:         g.players[g.turn],
-		Finished:     g.finished,
-		Winner:       g.winner,
-	}
-
-	for _, player_ := range g.players {
-		state.PlayerStates[player_] = &PlayerStateResponse{
+		PlayerStates: &PlayerStateResponse{
 			Hand:    g.hands[player_],
 			Actions: g.stages[player_].availableActions(),
-		}
+		},
+		Field:    map[int]*Combination{},
+		BankSize: len(g.bank),
+		Turn:     g.players[g.turn] == player_,
+		Finished: g.finished,
+		Winner:   g.winner,
 	}
 
 	// Game field
@@ -150,7 +149,7 @@ func (g *Game) CurrentState() ([]byte, error) {
 }
 
 // Receive action request
-func (g *Game) ReceiveActionRequest(request []byte) ([]byte, error) {
+func (g *Game) ReceiveActionRequest(request *http.Request) ([]byte, error) {
 	// Parse request
 	ar, err := ParseActionRequest(request)
 	if err != nil {
@@ -158,6 +157,13 @@ func (g *Game) ReceiveActionRequest(request []byte) ([]byte, error) {
 	}
 
 	// Check if it's requested player's move
+	player_ := player(ar.Player)
+	if _, ok := g.hands[player_]; !ok {
+		return actionError(fmt.Errorf("no player with name: %v", player_))
+	}
+	if player_ != g.players[g.turn] {
+		return actionError(fmt.Errorf("another player's turn"))
+	}
 
 	// Handle action
 	response, err := g.handleAction(ar)

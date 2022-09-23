@@ -3,16 +3,17 @@ package game
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 )
 
 // Current game state
 type StateResponse struct {
-	PlayerStates map[player]*PlayerStateResponse `json:"playerStates"`
-	Field        map[int]*Combination            `json:"field"`
-	BankSize     int                             `json:"bankSize"`
-	Turn         player                          `json:"turn"`
-	Finished     bool                            `json:"finished"`
-	Winner       player                          `json:"winner"`
+	PlayerStates *PlayerStateResponse `json:"playerState"`
+	Field        map[int]*Combination `json:"field"`
+	BankSize     int                  `json:"bankSize"`
+	Turn         bool                 `json:"turn"`
+	Finished     bool                 `json:"finished"`
+	Winner       player               `json:"winner"`
 }
 
 // Parse StateResponse from JSON
@@ -77,10 +78,10 @@ type ActionRequest struct {
 }
 
 // Parse ActionRequest from JSON
-func ParseActionRequest(request []byte) (*ActionRequest, error) {
+func ParseActionRequest(request *http.Request) (*ActionRequest, error) {
 	sr := &ActionRequest{}
 
-	err := json.Unmarshal(request, sr)
+	err := json.NewDecoder(request.Body).Decode(sr)
 	if err != nil {
 		return nil, fmt.Errorf("can't parse state response: %v", err)
 	}
