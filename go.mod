@@ -1,4 +1,4 @@
-module github.com/eightlay/rummikube
+module github.com/eightlay/rummikub-server
 
 go 1.18
 

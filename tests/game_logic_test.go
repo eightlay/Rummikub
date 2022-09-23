@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/eightlay/rummikube/iternal/game"
+	"github.com/eightlay/rummikub-server/iternal/game"
 )
 
 func TestGameLogic(t *testing.T) {
