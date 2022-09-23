@@ -113,7 +113,7 @@ func (g *Game) turnQueue() {
 	for i, p := range g.players {
 		largest := g.hands[p].largestPieceNumber()
 
-		if firstPlayerValue > largest {
+		if largest > firstPlayerValue {
 			firstPlayerIndex = i
 			firstPlayerValue = largest
 		}
