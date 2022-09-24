@@ -1,3 +1,7 @@
+// Copyright 2022 eightlay (github.com/eightlay). All rights reserved.
+// Use of this source code is governed by a MIT
+// license that can be found in the LICENSE file.
+
 // Copyright 2013 The Gorilla WebSocket Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the GORILLA-LICENSE file.
