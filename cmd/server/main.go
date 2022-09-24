@@ -7,6 +7,8 @@ import (
 	"github.com/eightlay/rummikub-server/iternal/server"
 )
 
+const addr string = ":3000"
+
 func main() {
 	file, err := os.OpenFile("runtime.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
@@ -14,5 +16,5 @@ func main() {
 	}
 	log.SetOutput(file)
 
-	server.StartServer()
+	server.StartServer(addr)
 }

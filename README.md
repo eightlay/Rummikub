@@ -1,5 +1,6 @@
 # Rummikub server
-Game server for [Rummikub](https://en.wikipedia.org/wiki/Rummikub) with REST API
+Game server for [Rummikub](https://en.wikipedia.org/wiki/Rummikub) on websockets
 
-## Example usage
-TBC
+## How to use
+1. Write the server address in a variable `addr` in `cmd/server/main.go` file
+2. Run `cmd/server/main.go`
