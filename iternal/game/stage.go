@@ -4,26 +4,21 @@ package game
 type stage int
 
 const (
+	// System stage
+	systemStage stage = iota
 	// Initial meld stage
-	initialMeldStage stage = iota
+	initialMeldStage
 	// Main game stage
 	mainGameStage
 )
 
-func (s stage) availableActions() []action {
+// Get available event for the stage
+func (s stage) availableEvents() []EventType {
+	if s == systemStage {
+		return initialEvents[:]
+	}
 	if s == initialMeldStage {
-		return initialActions[:]
+		return initialMeldEvents[:]
 	}
-	return mainActions[:]
-}
-
-// Create stage storage for players
-func createStages(players []player) map[player]stage {
-	hands := map[player]stage{}
-
-	for _, p := range players {
-		hands[p] = initialMeldStage
-	}
-
-	return hands
+	return mainEvents[:]
 }
