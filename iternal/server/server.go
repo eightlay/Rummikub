@@ -5,7 +5,7 @@ import (
 )
 
 // Start game server
-func StartServer() {
+func StartServer(addr string) {
 	m := newManager()
 
 	r := gin.New()
@@ -14,5 +14,6 @@ func StartServer() {
 			serveWs(m, c.Writer, c.Request)
 		})
 	}(m))
-	r.Run(":8080")
+
+	r.Run(addr)
 }
